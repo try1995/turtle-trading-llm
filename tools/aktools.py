@@ -64,19 +64,33 @@ def stock_research_report_em(
     2026-盈利预测-市盈率	float	-
     行业	str	-
     日期	str	-
-    报告PDF内容	str	-
+    报告PDF链接	str	-
     """
-    stock_research_report_em_df = ak.stock_research_report_em(symbol).head(1)
-    record = stock_research_report_em_df.astype(str).to_dict("records")[0]
-
-    with tempfile.TemporaryDirectory() as tempdir:
-        ret = requests.get(record["报告PDF链接"])
-        file_path = os.path.join(tempdir, "temp.pdf")
-        with open(file_path, 'wb') as f:
-            f.write(ret.content)
-        record["报告PDF内容"] = markdownpdf(file_path)
-        del record["报告PDF链接"]
+    stock_research_report_em_df = ak.stock_research_report_em(symbol).head(10)
+    # return stock_research_report_em_df
+    record = stock_research_report_em_df.astype(str).to_dict("records")
     return json.dumps(record, ensure_ascii=False)
+
+
+def stock_research_report_markdown(report_urls: Annotated[str, "英文逗号分隔的报告PDF链接， eg.http://1.pdf,http://2.pdf"]):
+    """
+    返回研报的PDF解析结果，输出示例如下：
+    第一家研报解析结果：
+    xxx
+    
+    第二家研报解析结果：
+    xxx
+    """
+    report_res = []
+    for index, report_url in enumerate(report_urls.split(",")):
+        with tempfile.TemporaryDirectory() as tempdir:
+            ret = requests.get(report_url)
+            file_path = os.path.join(tempdir, "temp.pdf")
+            with open(file_path, 'wb') as f:
+                f.write(ret.content)
+            result = markdownpdf(file_path)
+            report_res.append(f"第{index+1}家研报解析结果:\n"+result)
+    return "\n\n".join(report_res)
 
 # import talib as tl
 # from numba import njit
