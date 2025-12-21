@@ -1,4 +1,4 @@
 from agents.planAgent import PlanAgent
 
 plan = PlanAgent()
-plan.invork("Create a travel plan for a family of 2 kids from Singapore to Melbourne")
+plan.invork("制定一个元旦三天去太湖自驾游的计划")
