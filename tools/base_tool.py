@@ -1,6 +1,6 @@
 import inspect
 from typing import get_type_hints, Optional, Any, List, Dict, Annotated
-
+from markitdown import MarkItDown
 
 def get_func_schema(func):
     """
@@ -52,3 +52,20 @@ def get_func_schema(func):
     }
 
     return schema
+
+
+from datetime import datetime
+
+def get_date_desc():
+    """
+    获取当前时间描述，返回当前日期和星期几
+    """
+    now = datetime.now().strftime("%Y%m%d %H:%M:%S")
+    xinqi = datetime.now().weekday() +1
+    return f"当前时间是：{now}， 星期{xinqi}"
+
+
+def markdownpdf(file_path):
+    md = MarkItDown(docintel_endpoint="<document_intelligence_endpoint>")
+    result = md.convert(file_path)
+    return result.text_content

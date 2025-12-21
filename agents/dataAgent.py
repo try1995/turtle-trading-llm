@@ -2,11 +2,11 @@ import json
 from llm import client
 from loguru import logger
 from prompt import sys_data_prompt
-from tools import stock_zh_a_hist, get_func_schema, get_date_desc
+from tools import stock_zh_a_hist, get_func_schema, get_date_desc, stock_research_report_em
 
 class DataAgent:
     def __init__(self):
-        self.tools = [stock_zh_a_hist]
+        self.tools = [stock_zh_a_hist, stock_research_report_em]
         self.tools_regist = [get_func_schema(func) for func in self.tools]
         self.tools_dict = {fun.__name__:fun for fun in self.tools}
     
@@ -69,7 +69,7 @@ class DataAgent:
         for event in final_response_stream:
             cur_content = event.choices[0].delta.content
             if cur_content:
-                plan += cur_content
+                final_response_stream_plan += cur_content
                 print(cur_content, end="")
 
         return final_response_stream_plan
