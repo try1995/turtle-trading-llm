@@ -1,5 +1,5 @@
-from agents.reportAgent import reportAgent
+from agents.reportAgent import ReportAgent
 
-agent = reportAgent()
-ret = agent.invork("分析601601y研报数据")
+agent = ReportAgent()
+ret = agent.run("分析601601y研报数据")
 print(ret)

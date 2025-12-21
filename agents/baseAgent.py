@@ -1,14 +1,24 @@
 import json
 from llm import client
 from loguru import logger
+from abc import ABC, abstractmethod
+from pydantic import BaseModel
 
 
-class baseAgent:
+class baseAgent(ABC):
     def __init__(self):
         self.tools = []
         self.tools_regist = []
         self.tools_dict = {}
+        
+    @abstractmethod
+    def act(self):
+        pass
     
+    @abstractmethod
+    def run():
+        pass
+
     def invork_with_tools(self, messages):
         response = client.chat.completions.create(
             model="myllm:latest",
@@ -17,8 +27,11 @@ class baseAgent:
             tool_choice="auto",
         )
         response_message = response.choices[0].message
-
         
+        return response_message
+
+    
+    def act_with_tools(self, messages: list, response_message):
         # Handle function calls
         if response_message.tool_calls:
             messages.append(response_message)
@@ -54,20 +67,11 @@ class baseAgent:
             if cur_content:
                 final_response_stream_plan += cur_content
                 print(cur_content, end="")
-
         return final_response_stream_plan
     
     
-    def invork_with_tools_stepbystep(self, messages, max_step=10):
+    def act_with_tools_stepbystep(self, messages, response_message, max_step=10):
         while max_step:
-            response = client.chat.completions.create(
-                model="myllm:latest",
-                messages=messages,
-                tools=self.tools_regist,
-                tool_choice="auto",
-            )
-            response_message = response.choices[0].message
-
             if response_message.tool_calls:
                 if len(response_message.tool_calls) > 1:
                     response_message.tool_calls = [response_message.tool_calls[0]]
@@ -106,5 +110,5 @@ class baseAgent:
             if cur_content:
                 final_response_stream_plan += cur_content
                 print(cur_content, end="")
-
         return final_response_stream_plan
+    

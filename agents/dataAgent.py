@@ -11,8 +11,18 @@ class DataAgent(baseAgent):
         self.tools_regist = [get_func_schema(func) for func in self.tools]
         self.tools_dict = {fun.__name__:fun for fun in self.tools}
     
+    
+    def act(self, messages, response_message):
+        final_response_stream_plan = self.act_with_tools(messages, response_message)
+        # messages.append(
+        #     {
+        #         "role":"assistant",
+        #         "content": final_response_stream_plan
+        #     }
+        # )
 
-    def invork(self, message, max_step=10):
+    
+    def run(self, question):
         messages = [
             {"role": "system", "content": sys_data_prompt},
             {
@@ -21,10 +31,10 @@ class DataAgent(baseAgent):
             },
             {
                 "role": "user",
-                "content": message
+                "content": question
             },
         ]
-
-        self.invork_with_tools(messages, max_step)
+        response_message = self.invork_with_tools(messages)
+        self.act(messages, response_message)
                     
 

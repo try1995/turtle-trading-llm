@@ -1,4 +1,4 @@
 from agents.planAgent import PlanAgent
 
 plan = PlanAgent()
-plan.invork("制定一个元旦三天去太湖自驾游的计划")
+plan.run("结合研报数据，分析601601最近三个月的行情情况", human_in_loop=True)
