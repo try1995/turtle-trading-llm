@@ -1,23 +1,21 @@
 from loguru import logger
 from llm import client
 from copy import deepcopy
-from enum import Enum
 from prompt import sys_plan_prompt
 from .dataAgent import DataAgent
 from .reportAgent import ReportAgent
 from .baseAgent import baseAgent
+from .hostAgent import HostAgent
 from json_repair import repair_json
+from tools.all_types import EmAllagents
 
-
-class allagents(Enum):
-    search_agent = 1
-    
 
 class PlanAgent:
     def __init__(self):
-        self.name = "planAgent"
+        self.name = EmAllagents.planAgent.name
         self.agent = [DataAgent, ReportAgent]
         self.agent_dict:dict[str, baseAgent] = {"dataAgent":DataAgent(), "reportAgent":ReportAgent()}
+        self.agent_res = {}
         
     
     def invork(self, message, human_in_loop):
@@ -70,18 +68,29 @@ class PlanAgent:
                 else:
                     break
         return plan
+    
+    def get_agent_res(self):
+        res = "行情及技术指标:" + self.agent_res.get(EmAllagents.dataAgent.name, "无") + \
+            "\n研报：" + self.agent_res.get(EmAllagents.reportAgent.name, "无") + \
+            "\n舆情：" + self.agent_res.get(EmAllagents.publicOptionAgent.name, "无") 
+        return res
                     
 
     def act(self, plan):
         # 这是一个pipeline
-        logger.info(f"当前主要任务是：{plan['main_task']}")
         for task in plan["subtasks"]:
-            logger.info(f"task['assigned_agent']：当前执行子任务：{task['task_details']}")
-            agent = self.agent_dict[task["assigned_agent"]]
-            agent.run(task["task_details"])
+            agent_name, agent_task = task['assigned_agent'], task['task_details']
+            agent = self.agent_dict[agent_name]
+            agent_res = agent.run(agent_task)
+            self.agent_res[agent_name] = agent_res
+            logger.info("*"*99)
+        
+        host_agent = HostAgent()
+        host_agent.run(self.get_agent_res())
         
     
     def run(self, question, human_in_loop=True):
+        logger.info(f"{self.name}：当前执行任务：{question}")
         plan_raw = self.invork(question, human_in_loop)
         plan = repair_json(plan_raw, return_objects=True)
         self.act(plan)
