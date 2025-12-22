@@ -40,7 +40,7 @@ class baseAgent(ABC):
             model="myllm:latest",
             messages=messages,
             tools=self.tools_regist,
-            tool_choice="auto",
+            tool_choice="auto"
         )
         response_message = response.choices[0].message
         
@@ -49,6 +49,7 @@ class baseAgent(ABC):
     
     def act_with_tools(self, messages: list, response_message):
         # Handle function calls
+        tool_call_res = []
         if response_message.tool_calls:
             messages.append(response_message)
             for tool_call in response_message.tool_calls:
@@ -59,6 +60,7 @@ class baseAgent(ABC):
                     logger.debug(f"执行函数方法：{tool_call.function.name}, \
                                 参数：{tool_call.function.arguments},\
                                 执行结果：{response}")
+                    tool_call_res.append(response)
                     messages.append({
                         "tool_call_id": tool_call.id,
                         "role": "tool",
@@ -70,7 +72,7 @@ class baseAgent(ABC):
         else:
             logger.info("No tool calls were made by the model.")
         
-        return messages
+        return messages, tool_call_res
     
     def act_with_tools_stepbystep(self, messages, response_message):
         if response_message.tool_calls:
@@ -91,11 +93,11 @@ class baseAgent(ABC):
                         "name": fun.__name__,
                         "content": response,
                     })
-                    return False, messages
+                    return False, messages, response
                 else:
                     logger.error(f"error fun name from model: {fun.__name__}")
-                    return True, messages
+                    return True, messages, ""
         else:
             logger.info("No tool calls were made by the model.")
-            return True, messages
+            return True, messages, ""
     

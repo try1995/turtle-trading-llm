@@ -1,4 +1,4 @@
 from agents.planAgent import PlanAgent
 
 plan = PlanAgent()
-plan.run("结合研报数据，分析601601最近三个月的行情情况", human_in_loop=True)
+plan.run("结合研报数据，分析000066近三个月的行情情况", human_in_loop=False)

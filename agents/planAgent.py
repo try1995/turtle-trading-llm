@@ -5,7 +5,7 @@ from prompt import sys_plan_prompt
 from .dataAgent import DataAgent
 from .reportAgent import ReportAgent
 from .baseAgent import baseAgent
-from .hostAgent import HostAgent
+from .InvestmentAgent import InvestmentAgent
 from json_repair import repair_json
 from tools.all_types import EmAllagents
 
@@ -84,9 +84,9 @@ class PlanAgent:
             agent_res = agent.run(agent_task)
             self.agent_res[agent_name] = agent_res
             logger.info("*"*99)
-        
-        host_agent = HostAgent()
-        host_agent.run(self.get_agent_res())
+            if agent_name == EmAllagents.investmentAgent.name:
+                host_agent = InvestmentAgent()
+                host_agent.run(self.get_agent_res())
         
     
     def run(self, question, human_in_loop=True):

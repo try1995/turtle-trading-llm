@@ -6,5 +6,5 @@ class EmAllagents(Enum):
     dataAgent = 0
     reportAgent = 1
     publicOptionAgent = 4
-    hostAgent = 3
+    investmentAgent = 3
 

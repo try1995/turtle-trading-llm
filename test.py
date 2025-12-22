@@ -2,6 +2,7 @@ import os
 from tools import *
 import tempfile
 import requests
+import talib as ta
 
 def test_daily():
     ret = stock_zh_a_hist("601601.sh", start_date='20251212', end_date='20251212')
@@ -26,9 +27,14 @@ def test_markitdown():
         result = md.convert(file_path)
         return result.text_content
         
+def test_get_indicators():
+    df = get_indicators("601601")
+    return df
+
     
 if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
-    ret = test_stock_research_report_em()
+    # ret = test_stock_research_report_em()
     # ret = test_markitdown()
+    ret = test_get_indicators()
     print(ret)
