@@ -5,6 +5,7 @@ import json
 import talib as ta
 from datetime import datetime, timedelta
 import akshare as ak
+import pandas as pd
 from .base_tool import markdownpdf
 from typing import get_type_hints, Optional, Any, List, Dict, Annotated
 
@@ -43,7 +44,8 @@ def stock_zh_a_hist(
 
 
 def stock_research_report_em(
-    symbol: Annotated[str, "股票代码，e.g. 000001"]
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
 ):
     """
     获取东方财富个股研报数据
@@ -68,9 +70,11 @@ def stock_research_report_em(
     日期	str	-
     报告PDF链接	str	-
     """
-    stock_research_report_em_df = ak.stock_research_report_em(symbol).head(10)
-    # return stock_research_report_em_df
-    record = stock_research_report_em_df.astype(str).to_dict("records")
+    stock_research_report_em_df = ak.stock_research_report_em(symbol)
+    stock_research_report_em_df["日期"] = pd.to_datetime(stock_research_report_em_df["日期"])
+    df_filter = stock_research_report_em_df[stock_research_report_em_df["日期"] <= cur_date].head(10)
+    # return df_filter
+    record = df_filter.astype(str).to_dict("records")
     return json.dumps(record, ensure_ascii=False)
 
 

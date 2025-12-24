@@ -10,7 +10,7 @@ def test_daily():
 
 
 def test_stock_research_report_em():
-    return stock_research_report_em("601601")
+    return stock_research_report_em("601601", cur_date='20251212')
 
 def test_markitdown():
     from markitdown import MarkItDown
@@ -34,7 +34,7 @@ def test_get_indicators():
     
 if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
-    # ret = test_stock_research_report_em()
+    ret = test_stock_research_report_em()
     # ret = test_markitdown()
-    ret = test_get_indicators()
+    # ret = test_get_indicators()
     print(ret)
