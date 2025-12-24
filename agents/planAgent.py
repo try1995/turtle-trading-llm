@@ -84,9 +84,9 @@ class PlanAgent:
             agent_res = agent.run(agent_task)
             self.agent_res[agent_name] = agent_res
             logger.info("*"*99)
-            if agent_name == EmAllagents.investmentAgent.name:
-                host_agent = InvestmentAgent()
-                host_agent.run(self.get_agent_res())
+            # if agent_name == EmAllagents.investmentAgent.name:
+        host_agent = InvestmentAgent()
+        host_agent.run(self.get_agent_res())
         
     
     def run(self, question, human_in_loop=True):

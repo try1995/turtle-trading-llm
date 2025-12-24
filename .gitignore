@@ -1,2 +1,5 @@
 *.pyc
 aktools_log.log
+.pytest_cache/
+.pybrokercache/
+.ipynb_checkpoints/
