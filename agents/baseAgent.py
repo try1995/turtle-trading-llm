@@ -1,29 +1,40 @@
+import os
 import json
 from llm import client
 from loguru import logger
 from abc import ABC, abstractmethod
-from pydantic import BaseModel
+from datetime import datetime
+
+
 
 
 class baseAgent(ABC):
     def __init__(self):
+        self.name = ""
         self.tools = []
         self.tools_regist = []
         self.tools_dict = {}
-        
+        # 回测标志
+        self.backtest = False
+        # 回测日期
+        self.backtest_date = ""
+        self.cache_dir = ".pyturtlecache/"
+    
     @abstractmethod
-    def act(self):
+    def act(self, *args, **kwargs):
         pass
     
     @abstractmethod
-    def run():
+    def run(self, *args, **kwargs):
         pass
 
-    def invork(self, messages):
+    def invork(self, messages, **kwargs):
         final_response_stream = client.chat.completions.create(
             model="myllm:latest",
             messages=messages,
             stream=True,
+            temperature=0.1,
+            **kwargs
         )
         
         final_response_stream_res = ""
@@ -86,7 +97,7 @@ class baseAgent(ABC):
                     response = fun(**function_args)
                     logger.debug(f"执行函数方法：{tool_call.function.name}, \
                                 参数：{tool_call.function.arguments},\
-                                执行结果：{response}")
+                                执行结果：{str(response)[:500]}...")
                     messages.append({
                         "tool_call_id": tool_call.id,
                         "role": "tool",
@@ -101,3 +112,17 @@ class baseAgent(ABC):
             logger.info("No tool calls were made by the model.")
             return True, messages, ""
     
+    
+    def set_backtest(self, cur_date):
+        self.backtest = True
+        self.backtest_date = cur_date
+
+    
+    def get_date_desc(self):
+        if self.backtest:
+            xinqi = datetime.strptime(self.backtest_date, "%Y%m%d").weekday() + 1
+            return f"当前时间是：{self.backtest_date}，星期{xinqi}"
+        else:
+            now = datetime.now().strftime("%Y%m%d")
+            xinqi = datetime.now().weekday() +1
+            return f"当前时间是：{now}，星期{xinqi}"

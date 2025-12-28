@@ -102,6 +102,7 @@ def stock_research_report_markdown(report_urls: Annotated[str, "英文逗号分�
 # ---------- Supertrend numba 加速 ----------
 def get_indicators(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
     data_range: Annotated[int, "时间跨度,建议不低于90天，e.g. 90"] = 90,
 ):
     """
@@ -119,10 +120,10 @@ def get_indicators(
     ATR14   float64  14日真实波动幅度均值
     OBV     float64  能量潮
     """
-    end_date   = datetime.now().strftime("%Y%m%d")
-    start_date = (datetime.now() - timedelta(days=data_range)).strftime("%Y%m%d")
+    # end_date   = datetime.now().strftime("%Y%m%d")
+    start_date = (datetime.strptime(cur_date, '%Y%m%d') - timedelta(days=data_range)).strftime("%Y%m%d")
     df = ak.stock_zh_a_hist(symbol=symbol, period="daily",
-                            start_date=start_date, end_date=end_date, adjust="qfq")
+                            start_date=start_date, end_date=cur_date, adjust="qfq")
 
     # 2. 列名转英文，talib 只认英文
     df = df.rename(columns={
@@ -147,4 +148,38 @@ def get_indicators(
 
     df = df.drop(columns=["close","open","high","low","volume","股票代码", "成交额", "振幅", "涨跌幅", "涨跌额", "换手率"])
     record = df.astype(str).to_dict("records")
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_yjbb_em(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"]
+):
+    """
+    描述: 东方财富-数据中心-年报季报-业绩报表
+
+    获取指定 date 的业绩报告数据
+    
+    输出参数
+
+    名称	类型	描述
+    序号	int64	-
+    股票代码	object	-
+    股票简称	object	-
+    每股收益	float64	注意单位: 元
+    营业总收入-营业总收入	float64	注意单位: 元
+    营业总收入-同比增长	float64	注意单位: %
+    营业总收入-季度环比增长	float64	注意单位: %
+    净利润-净利润	float64	注意单位: 元
+    净利润-同比增长	float64	注意单位: %
+    净利润-季度环比增长	float64	注意单位: %
+    每股净资产	float64	注意单位: 元
+    净资产收益率	float64	注意单位: %
+    每股经营现金流量	float64	注意单位: 元
+    销售毛利率	float64	注意单位: %
+    所处行业	object	-
+    最新公告日期	object	-
+    """
+    stock_yjbb_em_df = ak.stock_yjbb_em(date=cur_date)
+    record = stock_yjbb_em_df[stock_yjbb_em_df["股票代码"]==symbol].astype(str).to_dict("records")
     return json.dumps(record, ensure_ascii=False)

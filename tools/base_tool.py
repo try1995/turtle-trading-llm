@@ -1,3 +1,5 @@
+import os
+import json
 import inspect
 from typing import get_type_hints, Optional, Any, List, Dict, Annotated
 from markitdown import MarkItDown
@@ -54,18 +56,20 @@ def get_func_schema(func):
     return schema
 
 
-from datetime import datetime
-
-def get_date_desc():
-    """
-    获取当前时间描述，返回当前日期和星期几
-    """
-    now = datetime.now().strftime("%Y%m%d %H:%M:%S")
-    xinqi = datetime.now().weekday() +1
-    return f"当前时间是：{now}， 星期{xinqi}"
-
-
 def markdownpdf(file_path):
     md = MarkItDown(docintel_endpoint="<document_intelligence_endpoint>")
     result = md.convert(file_path)
     return result.text_content
+
+
+def save_response(func):
+    def wrapper(self, *args, **kwargs):
+        ret =  func(self, *args, **kwargs)
+        os.makedirs(os.path.join(self.cache_dir, self.backtest_date), exist_ok=True)
+        with open(os.path.join(self.cache_dir, self.backtest_date, self.name+"_"+func.__name__), "w") as f:
+            if isinstance(ret, str):
+                f.write(ret)
+            else:
+                f.write(json.dumps(ret, ensure_ascii=False, indent=4))
+        return ret
+    return wrapper

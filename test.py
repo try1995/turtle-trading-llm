@@ -28,13 +28,33 @@ def test_markitdown():
         return result.text_content
         
 def test_get_indicators():
-    df = get_indicators("601601")
+    df = get_indicators("601601", cur_date="20251201")
     return df
 
-    
+def get_trade_date():
+    # 交易日历
+    tool_trade_date_hist_sina_df = ak.tool_trade_date_hist_sina()
+    return tool_trade_date_hist_sina_df
+
+
+def get_stock_info():
+    # 以贵州茅台为例，code 后复权请带前缀 sh/sz
+    df = ak.stock_individual_info_em(symbol="600519")
+    return df
+
+def test_stock_yjbb_em_df():
+    return stock_yjbb_em("601601", "20240331")
+
+
 if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
-    ret = test_stock_research_report_em()
+    # ret = test_stock_research_report_em()
     # ret = test_markitdown()
     # ret = test_get_indicators()
-    print(ret)
+    # ret = get_trade_date()
+    # ret = get_stock_info()
+    # ret = test_stock_yjbb_em_df()
+    # print(ret)
+
+    stock_individual_fund_flow_df = ak.stock_individual_fund_flow(stock="601601", market="sh")
+    print(stock_individual_fund_flow_df)

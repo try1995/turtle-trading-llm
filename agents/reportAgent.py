@@ -1,11 +1,12 @@
-from tools import *
 from .baseAgent import baseAgent
 from prompt import sys_report_prompt
 from loguru import logger
 from tools.all_types import EmAllagents
+from tools import stock_research_report_em, stock_research_report_markdown, get_func_schema, save_response
 
 class ReportAgent(baseAgent):
     def __init__(self, max_step=10):
+        super().__init__()
         self.name = EmAllagents.reportAgent.name
         self.max_step = max_step
         self.tools = [stock_research_report_em, stock_research_report_markdown]
@@ -17,13 +18,14 @@ class ReportAgent(baseAgent):
         return finish, messages, response
 
     
+    @save_response
     def run(self, question):
         logger.info(f"{self.name}：当前执行任务：{question}")
         messages = [
             {"role": "system", "content": sys_report_prompt},
             {
                 "role": "user",
-                "content": get_date_desc()
+                "content": self.get_date_desc()
             },
             {
                 "role": "user",

@@ -10,14 +10,23 @@ from json_repair import repair_json
 from tools.all_types import EmAllagents
 
 
-class PlanAgent:
+class PlanAgent(baseAgent):
     def __init__(self):
+        super().__init__()
         self.name = EmAllagents.planAgent.name
         self.agent = [DataAgent, ReportAgent]
-        self.agent_dict:dict[str, baseAgent] = {"dataAgent":DataAgent(), "reportAgent":ReportAgent()}
+        self.agent_dict:dict[str, baseAgent] = {
+            EmAllagents.dataAgent.name:DataAgent(), 
+            EmAllagents.reportAgent.name:ReportAgent(),
+            EmAllagents.investmentAgent.name: InvestmentAgent()}
         self.agent_res = {}
-        
     
+    
+    def set_backtest(self, cur_date):
+        self.backtest = True
+        for _, v in self.agent_dict.items():
+            v.set_backtest(cur_date)
+        
     def invork(self, message, human_in_loop):
         messages = [
             {"role": "system", "content": sys_plan_prompt},
@@ -69,8 +78,9 @@ class PlanAgent:
                     break
         return plan
     
-    def get_agent_res(self):
-        res = "行情及技术指标:" + self.agent_res.get(EmAllagents.dataAgent.name, "无") + \
+    def get_agent_res(self, task):
+        res = "任务：" + task + \
+            "\n行情及技术指标：" + self.agent_res.get(EmAllagents.dataAgent.name, "无") + \
             "\n研报：" + self.agent_res.get(EmAllagents.reportAgent.name, "无") + \
             "\n舆情：" + self.agent_res.get(EmAllagents.publicOptionAgent.name, "无") 
         return res
@@ -81,12 +91,13 @@ class PlanAgent:
         for task in plan["subtasks"]:
             agent_name, agent_task = task['assigned_agent'], task['task_details']
             agent = self.agent_dict[agent_name]
-            agent_res = agent.run(agent_task)
-            self.agent_res[agent_name] = agent_res
+            if agent_name == EmAllagents.investmentAgent.name:
+                agent_res = agent.run(self.get_agent_res(task['task_details']))
+            else:
+                agent_res = agent.run(agent_task)
+                self.agent_res[agent_name] = agent_res
             logger.info("*"*99)
-            # if agent_name == EmAllagents.investmentAgent.name:
-        host_agent = InvestmentAgent()
-        host_agent.run(self.get_agent_res())
+                
         
     
     def run(self, question, human_in_loop=True):
