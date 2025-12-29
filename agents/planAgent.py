@@ -1,3 +1,4 @@
+import os
 from loguru import logger
 from llm import client
 from copy import deepcopy
@@ -20,10 +21,15 @@ class PlanAgent(baseAgent):
             EmAllagents.reportAgent.name:ReportAgent(),
             EmAllagents.investmentAgent.name: InvestmentAgent()}
         self.agent_res = {}
+        self.last_invest_suggestion = ""
+        self.use_cache = False
     
     
-    def set_backtest(self, cur_date):
+    def set_backtest(self, cur_date, last_invest_suggestion="无", use_cache=True):
         self.backtest = True
+        self.use_cache = use_cache
+        self.backtest_date = cur_date
+        self.last_invest_suggestion = last_invest_suggestion
         for _, v in self.agent_dict.items():
             v.set_backtest(cur_date)
         
@@ -84,8 +90,18 @@ class PlanAgent(baseAgent):
             "\n研报：" + self.agent_res.get(EmAllagents.reportAgent.name, "无") + \
             "\n舆情：" + self.agent_res.get(EmAllagents.publicOptionAgent.name, "无") 
         return res
-                    
 
+    
+    def get_cache_res(self, agent_name):
+        path = os.path.join(self.cache_dir, self.backtest_date, agent_name+"_run")
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                cache_res = f.read()
+            logger.debug("load cache successfully!!!")
+            return cache_res
+        else:
+            return ""
+            
     def act(self, plan):
         # 这是一个pipeline
         for task in plan["subtasks"]:
@@ -94,11 +110,15 @@ class PlanAgent(baseAgent):
             if agent_name == EmAllagents.investmentAgent.name:
                 agent_res = agent.run(self.get_agent_res(task['task_details']))
             else:
-                agent_res = agent.run(agent_task)
+                if self.use_cache:
+                    agent_res = self.get_cache_res(agent_name)
+                    if not agent_res:
+                        agent_res = agent.run(agent_task)
+                else:
+                    agent_res = agent.run(agent_task)
                 self.agent_res[agent_name] = agent_res
             logger.info("*"*99)
                 
-        
     
     def run(self, question, human_in_loop=True):
         logger.info(f"{self.name}：当前执行任务：{question}")

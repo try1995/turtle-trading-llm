@@ -4,12 +4,12 @@ from loguru import logger
 from prompt import sys_data_prompt
 from .baseAgent import baseAgent
 from tools.all_types import EmAllagents
-from tools import stock_zh_a_hist, get_func_schema, get_indicators, save_response
+from tools import stock_zh_a_hist, get_func_schema, get_indicators, save_response, stock_individual_fund_flow
 
 class DataAgent(baseAgent):
     def __init__(self):
         super().__init__()
-        self.tools = [stock_zh_a_hist, get_indicators]
+        self.tools = [stock_zh_a_hist, get_indicators, stock_individual_fund_flow]
         self.name = EmAllagents.dataAgent.name
         self.tools_regist = [get_func_schema(func) for func in self.tools]
         self.tools_dict = {fun.__name__:fun for fun in self.tools}

@@ -31,11 +31,6 @@ def test_get_indicators():
     df = get_indicators("601601", cur_date="20251201")
     return df
 
-def get_trade_date():
-    # 交易日历
-    tool_trade_date_hist_sina_df = ak.tool_trade_date_hist_sina()
-    return tool_trade_date_hist_sina_df
-
 
 def get_stock_info():
     # 以贵州茅台为例，code 后复权请带前缀 sh/sz
@@ -45,16 +40,21 @@ def get_stock_info():
 def test_stock_yjbb_em_df():
     return stock_yjbb_em("601601", "20240331")
 
+def test_stock_individual_fund_flow():
+    return stock_individual_fund_flow("601601", "20251201")
 
 if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
     # ret = test_stock_research_report_em()
     # ret = test_markitdown()
     # ret = test_get_indicators()
-    # ret = get_trade_date()
+    # ret = get_trade_date("20250101", "20251212")
     # ret = get_stock_info()
     # ret = test_stock_yjbb_em_df()
+    # ret = test_stock_individual_fund_flow()
     # print(ret)
+    import akshare as ak
 
-    stock_individual_fund_flow_df = ak.stock_individual_fund_flow(stock="601601", market="sh")
-    print(stock_individual_fund_flow_df)
+    stock_news_main_cx_df = ak.stock_news_main_cx()
+    print(stock_news_main_cx_df.head(2))
+    print(stock_news_main_cx_df["url"].to_list()[0])

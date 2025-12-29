@@ -183,3 +183,54 @@ def stock_yjbb_em(
     stock_yjbb_em_df = ak.stock_yjbb_em(date=cur_date)
     record = stock_yjbb_em_df[stock_yjbb_em_df["股票代码"]==symbol].astype(str).to_dict("records")
     return json.dumps(record, ensure_ascii=False)
+
+
+def get_market(code: str) -> str:
+    """返回 'sh' / 'sz' / 'bj'"""
+    code = code.strip()
+    if code.startswith(('6', '9')):          # 6xxxxxx、900xxx
+        return 'sh'
+    if code.startswith(('0', '3')):          # 0xxxxxx、3xxxxxx
+        return 'sz'
+    # 其余按北交所处理（8xxxxxx 或 8 位代码）
+    return 'bj'
+
+def stock_individual_fund_flow(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"]
+):
+    """
+    描述: 东方财富网-数据中心-个股资金流向
+    获取指定股票的交易日的资金流数据
+
+    输出参数
+
+    名称	类型	描述
+    日期	object	-
+    收盘价	float64	-
+    涨跌幅	float64	注意单位: %
+    主力净流入-净额	float64	-
+    主力净流入-净占比	float64	注意单位: %
+    超大单净流入-净额	float64	-
+    超大单净流入-净占比	float64	注意单位: %
+    大单净流入-净额	float64	-
+    大单净流入-净占比	float64	注意单位: %
+    中单净流入-净额	float64	-
+    中单净流入-净占比	float64	注意单位: %
+    小单净流入-净额	float64	-
+    小单净流入-净占比	float64	注意单位: %
+
+    """
+    cur_date = datetime.strptime(cur_date, "%Y%m%d").strftime("%Y-%m-%d")
+    stock_individual_fund_flow_df = ak.stock_individual_fund_flow(stock=symbol, market=get_market(symbol))
+    stock_individual_fund_flow_df = stock_individual_fund_flow_df.astype(str)
+    record = stock_individual_fund_flow_df[stock_individual_fund_flow_df["日期"]==cur_date].to_dict("records")
+    return json.dumps(record, ensure_ascii=False)
+
+
+def get_trade_date(start_date, end_date):
+    # 交易日历
+    trade_df = ak.tool_trade_date_hist_sina()
+    trade_df["trade_date"] = pd.to_datetime(trade_df["trade_date"], errors='coerce')
+    ret = trade_df[(trade_df["trade_date"] >= start_date) & (trade_df["trade_date"] <= end_date)]
+    return ret["trade_date"].dt.strftime('%Y%m%d').to_list()
