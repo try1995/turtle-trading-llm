@@ -323,3 +323,23 @@ def stock_board_industry_summary_ths(
     stock_board_industry_summary_ths_df = ak.stock_board_industry_summary_ths().drop(columns=["序号"])
     record = stock_board_industry_summary_ths_df[stock_board_industry_summary_ths_df["板块"]==industry].to_dict("records")[0]
     return json.dumps(record, ensure_ascii=False)
+
+
+def stock_news_em(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+):
+    """
+    描述: 查询指定个股的新闻资讯数据
+    
+    输出参数
+
+    名称	类型	描述
+    关键词	object	-
+    新闻标题	object	-
+    新闻内容	object	-
+    发布时间	object	-
+    文章来源	object	-
+    """
+    stock_news_em_df = ak.stock_news_em(symbol).drop(columns=["新闻链接"])
+    record = stock_news_em_df.to_dict("records")
+    return json.dumps(record, ensure_ascii=False)
