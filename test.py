@@ -41,7 +41,18 @@ def test_stock_yjbb_em_df():
     return stock_yjbb_em("601601", "20240331")
 
 def test_stock_individual_fund_flow():
-    return stock_individual_fund_flow("601601", "20251201")
+    return stock_individual_fund_flow("601601", "20251231")
+
+
+def test_stock_value_em():
+    return stock_value_em("601601", "20251231")
+
+def test_stock_individual_info_em():
+    return stock_individual_info_em("000001")
+
+
+def test_stock_board_industry_summary_ths():
+    return stock_board_industry_summary_ths("000001")
 
 if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
@@ -51,10 +62,13 @@ if __name__ == "__main__":
     # ret = get_trade_date("20250101", "20251212")
     # ret = get_stock_info()
     # ret = test_stock_yjbb_em_df()
-    # ret = test_stock_individual_fund_flow()
-    # print(ret)
-    import akshare as ak
+    ret = test_stock_individual_fund_flow()
+    # ret = test_stock_value_em()
+    # ret = test_stock_individual_info_em()
+    # ret = test_stock_board_industry_summary_ths()
+    print(ret)
+    # import akshare as ak
 
-    stock_news_main_cx_df = ak.stock_news_main_cx()
-    print(stock_news_main_cx_df.head(2))
-    print(stock_news_main_cx_df["url"].to_list()[0])
+    # stock_news_main_cx_df = ak.stock_news_main_cx()
+    # print(stock_news_main_cx_df.head(2))
+    # print(stock_news_main_cx_df["url"].to_list()[0])

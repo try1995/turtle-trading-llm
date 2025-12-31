@@ -6,8 +6,6 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 
 
-
-
 class baseAgent(ABC):
     def __init__(self):
         self.name = ""
@@ -18,7 +16,6 @@ class baseAgent(ABC):
         self.backtest = False
         # 回测日期
         self.backtest_date = ""
-        self.cache_dir = ".pyturtlecache/"
     
     @abstractmethod
     def act(self, *args, **kwargs):

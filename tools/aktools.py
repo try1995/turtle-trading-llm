@@ -18,8 +18,7 @@ def stock_zh_a_hist(
     adjust: Annotated[str, "复权方式，默认不复权；qfq: 前复权；hfq: 后复权,不复权：看表面价格，忽略分红影响。前复权：看近期成本，适合短线。后复权：看真实收益，适合长线。"]="",
 ):
     """
-    东方财富-沪深京 A 股日频率历史行情
-    注：日期都填 YYYYMMDD 格式;
+    描述：沪深京 A 股日频率历史行情
 
     输出参数-历史行情数据
 
@@ -106,7 +105,7 @@ def get_indicators(
     data_range: Annotated[int, "时间跨度,建议不低于90天，e.g. 90"] = 90,
 ):
     """
-    获取指定股票代码的技术分析指标
+    描述：获取指定股票代码的技术分析指标
     
     输出参数-技术分析指标
 
@@ -200,8 +199,7 @@ def stock_individual_fund_flow(
     cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"]
 ):
     """
-    描述: 东方财富网-数据中心-个股资金流向
-    获取指定股票的交易日的资金流数据
+    描述: 获取指定股票的交易日的资金流数据，若交易日未结束，则自动获取到上一个交易日数据
 
     输出参数
 
@@ -224,7 +222,12 @@ def stock_individual_fund_flow(
     cur_date = datetime.strptime(cur_date, "%Y%m%d").strftime("%Y-%m-%d")
     stock_individual_fund_flow_df = ak.stock_individual_fund_flow(stock=symbol, market=get_market(symbol))
     stock_individual_fund_flow_df = stock_individual_fund_flow_df.astype(str)
-    record = stock_individual_fund_flow_df[stock_individual_fund_flow_df["日期"]==cur_date].to_dict("records")
+    record = stock_individual_fund_flow_df[stock_individual_fund_flow_df["日期"]==cur_date]
+    if record.empty:
+        # 1.说明当天交易日没结束，需要获取的是前一个交易日的数据
+        # 2.运行在一个非交易日时间，取最新的交易日的数据
+        record = stock_individual_fund_flow_df.tail(1)
+    record = record.to_dict("records")[0]
     return json.dumps(record, ensure_ascii=False)
 
 
@@ -234,3 +237,89 @@ def get_trade_date(start_date, end_date):
     trade_df["trade_date"] = pd.to_datetime(trade_df["trade_date"], errors='coerce')
     ret = trade_df[(trade_df["trade_date"] >= start_date) & (trade_df["trade_date"] <= end_date)]
     return ret["trade_date"].dt.strftime('%Y%m%d').to_list()
+
+
+def stock_value_em(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"]
+):
+    """
+    描述: 获取指定交易日的股票估值分析，若交易日未结束，则自动获取到上一个交易日数据
+
+    输出参数
+
+    名称	类型	描述
+    数据日期	object	-
+    当日收盘价	float64	注意单位: 元
+    当日涨跌幅	float64	注意单位: %
+    总市值	float64	注意单位: 元
+    流通市值	float64	注意单位: 元
+    总股本	float64	注意单位: 股
+    流通股本	float64	-
+    PE(TTM)	float64	-
+    PE(静)	float64	-
+    市净率	float64	-
+    PEG值	float64	-
+    市现率	float64	-
+    市销率	float64	-
+    """
+    cur_date = datetime.strptime(cur_date, "%Y%m%d").strftime("%Y-%m-%d")
+    df_val = ak.stock_value_em(symbol).astype(str)
+    record = df_val[df_val["数据日期"]==cur_date]
+    if record.empty:
+        # 1.说明当天交易日没结束，需要获取的是前一个交易日的数据
+        # 2.运行在一个非交易日时间，取最新的交易日的数据
+        record = df_val.tail(1)
+    record = record.to_dict("records")[0]
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_individual_info_em(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+):
+    """
+    描述: 查询股票信息
+
+    输出参数
+
+    名称            类型      描述
+    最新            float64   当日收盘价，单位：元
+    股票代码        object    -
+    股票简称        object    -
+    总股本          float64   单位：股
+    流通股          float64   流通股本
+    总市值          float64   单位：元
+    流通市值        float64   单位：元
+    行业            object    -
+    上市时间        object    数据日期
+    """
+    stock_individual_info_em_df = ak.stock_individual_info_em(symbol)
+    record = stock_individual_info_em_df.set_index('item')['value'].to_dict()
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_board_industry_summary_ths(
+    symbol: Annotated[str, "股票代码，e.g. 000001"]
+):
+    """
+    描述: 查询指定股票所在行业涨跌信息
+
+    输出参数
+
+    名称	类型	描述
+    板块	object	-
+    涨跌幅	object	注意单位: %
+    总成交量	float64	注意单位: 万手
+    总成交额	float64	注意单位: 亿元
+    净流入	float64	注意单位: 亿元
+    上涨家数	float64	-
+    下跌家数	float64	-
+    均价	float64	-
+    领涨股	float64	-
+    领涨股-最新价	object	-
+    领涨股-涨跌幅	object	注意单位: %
+    """
+    industry = json.loads(stock_individual_info_em(symbol))["行业"]
+    stock_board_industry_summary_ths_df = ak.stock_board_industry_summary_ths().drop(columns=["序号"])
+    record = stock_board_industry_summary_ths_df[stock_board_industry_summary_ths_df["板块"]==industry].to_dict("records")[0]
+    return json.dumps(record, ensure_ascii=False)

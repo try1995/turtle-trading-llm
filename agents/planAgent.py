@@ -9,6 +9,7 @@ from .baseAgent import baseAgent
 from .InvestmentAgent import InvestmentAgent
 from json_repair import repair_json
 from tools.all_types import EmAllagents
+from tools.base_tool import get_cache
 
 
 class PlanAgent(baseAgent):
@@ -83,39 +84,25 @@ class PlanAgent(baseAgent):
                 else:
                     break
         return plan
-    
-    def get_agent_res(self, task):
-        res = "任务：" + task + \
-            "\n行情及技术指标：" + self.agent_res.get(EmAllagents.dataAgent.name, "无") + \
-            "\n研报：" + self.agent_res.get(EmAllagents.reportAgent.name, "无") + \
-            "\n舆情：" + self.agent_res.get(EmAllagents.publicOptionAgent.name, "无") 
-        return res
 
     
     def get_cache_res(self, agent_name):
-        path = os.path.join(self.cache_dir, self.backtest_date, agent_name+"_run")
-        if os.path.exists(path):
-            with open(path, "r") as f:
-                cache_res = f.read()
+        res = get_cache(self.backtest_date, agent_name)
+        if res:
             logger.debug("load cache successfully!!!")
-            return cache_res
-        else:
-            return ""
+        return res
             
     def act(self, plan):
         # 这是一个pipeline
         for task in plan["subtasks"]:
             agent_name, agent_task = task['assigned_agent'], task['task_details']
             agent = self.agent_dict[agent_name]
-            if agent_name == EmAllagents.investmentAgent.name:
-                agent_res = agent.run(self.get_agent_res(task['task_details']))
-            else:
-                if self.use_cache:
-                    agent_res = self.get_cache_res(agent_name)
-                    if not agent_res:
-                        agent_res = agent.run(agent_task)
-                else:
+            if self.use_cache:
+                agent_res = self.get_cache_res(agent_name)
+                if not agent_res:
                     agent_res = agent.run(agent_task)
+            else:
+                agent_res = agent.run(agent_task)
                 self.agent_res[agent_name] = agent_res
             logger.info("*"*99)
                 

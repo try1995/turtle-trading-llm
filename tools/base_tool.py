@@ -1,7 +1,9 @@
 import os
 import json
+import config
 import inspect
-from typing import get_type_hints, Optional, Any, List, Dict, Annotated
+from datetime import datetime
+from typing import get_type_hints
 from markitdown import MarkItDown
 
 def get_func_schema(func):
@@ -65,11 +67,23 @@ def markdownpdf(file_path):
 def save_response(func):
     def wrapper(self, *args, **kwargs):
         ret =  func(self, *args, **kwargs)
-        os.makedirs(os.path.join(self.cache_dir, self.backtest_date), exist_ok=True)
-        with open(os.path.join(self.cache_dir, self.backtest_date, self.name+"_"+func.__name__), "w") as f:
+        date_dir = self.backtest_date if self.backtest_date else datetime.now().strftime("%Y%m%d")
+        os.makedirs(os.path.join(config.cache_dir, date_dir), exist_ok=True)
+        with open(os.path.join(config.cache_dir, date_dir, self.name+"_"+func.__name__), "w") as f:
             if isinstance(ret, str):
                 f.write(ret)
             else:
                 f.write(json.dumps(ret, ensure_ascii=False, indent=4))
         return ret
     return wrapper
+
+
+def get_cache(cur_date, agent_name):
+    path = os.path.join(config.cache_dir, cur_date, agent_name+"_run")
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            cache_res = f.read()
+        return cache_res
+    else:
+        return "无结果"
+        
