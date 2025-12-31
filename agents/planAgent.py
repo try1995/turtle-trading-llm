@@ -24,7 +24,11 @@ class PlanAgent(baseAgent):
         self.agent_res = {}
         self.last_invest_suggestion = ""
         self.use_cache = False
-    
+
+    def set_symbol(self, symbol):
+        super().set_symbol(symbol)
+        for _, v in self.agent_dict.items():
+            v.set_symbol(symbol)
     
     def set_backtest(self, cur_date, last_invest_suggestion="无", use_cache=True):
         self.backtest = True
@@ -86,8 +90,8 @@ class PlanAgent(baseAgent):
         return plan
 
     
-    def get_cache_res(self, agent_name):
-        res = get_cache(self.backtest_date, agent_name)
+    def get_cache_res(self, symbol, agent_name):
+        res = get_cache(self.backtest_date, symbol, agent_name)
         if res:
             logger.debug("load cache successfully!!!")
         return res
@@ -98,7 +102,7 @@ class PlanAgent(baseAgent):
             agent_name, agent_task = task['assigned_agent'], task['task_details']
             agent = self.agent_dict[agent_name]
             if self.use_cache:
-                agent_res = self.get_cache_res(agent_name)
+                agent_res = self.get_cache_res(self.symbol, agent_name)
                 if not agent_res:
                     agent_res = agent.run(agent_task)
             else:

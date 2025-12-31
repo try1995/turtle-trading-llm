@@ -16,6 +16,8 @@ class baseAgent(ABC):
         self.backtest = False
         # 回测日期
         self.backtest_date = ""
+        # 股票代码
+        self.symbol = ""
     
     @abstractmethod
     def act(self, *args, **kwargs):
@@ -114,6 +116,8 @@ class baseAgent(ABC):
         self.backtest = True
         self.backtest_date = cur_date
 
+    def set_symbol(self, symbol):
+        self.symbol = symbol
     
     def get_date_desc(self):
         if self.backtest:

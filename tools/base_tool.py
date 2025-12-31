@@ -68,8 +68,8 @@ def save_response(func):
     def wrapper(self, *args, **kwargs):
         ret =  func(self, *args, **kwargs)
         date_dir = self.backtest_date if self.backtest_date else datetime.now().strftime("%Y%m%d")
-        os.makedirs(os.path.join(config.cache_dir, date_dir), exist_ok=True)
-        with open(os.path.join(config.cache_dir, date_dir, self.name+"_"+func.__name__), "w") as f:
+        os.makedirs(os.path.join(config.cache_dir, self.symbol, date_dir), exist_ok=True)
+        with open(os.path.join(config.cache_dir, self.symbol, date_dir, self.name+"_"+func.__name__), "w") as f:
             if isinstance(ret, str):
                 f.write(ret)
             else:
@@ -78,8 +78,8 @@ def save_response(func):
     return wrapper
 
 
-def get_cache(cur_date, agent_name):
-    path = os.path.join(config.cache_dir, cur_date, agent_name+"_run")
+def get_cache(cur_date, symbol, agent_name):
+    path = os.path.join(config.cache_dir, symbol, cur_date, agent_name+"_run")
     if os.path.exists(path):
         with open(path, "r") as f:
             cache_res = f.read()

@@ -1,4 +1,5 @@
 from agents.planAgent import PlanAgent
 
 plan = PlanAgent()
-plan.run("详细分析601601行情情况，提供交易建议", human_in_loop=True)
+plan.set_symbol("601601")
+plan.run("详细分析601601行情情况，提供交易建议", human_in_loop=False)

@@ -50,9 +50,12 @@ def test_stock_value_em():
 def test_stock_individual_info_em():
     return stock_individual_info_em("000001")
 
-
 def test_stock_board_industry_summary_ths():
     return stock_board_industry_summary_ths("000001")
+
+
+def test_stock_news_em():
+    return stock_news_em("601601")
 
 if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
@@ -62,10 +65,11 @@ if __name__ == "__main__":
     # ret = get_trade_date("20250101", "20251212")
     # ret = get_stock_info()
     # ret = test_stock_yjbb_em_df()
-    ret = test_stock_individual_fund_flow()
+    # ret = test_stock_individual_fund_flow()
     # ret = test_stock_value_em()
     # ret = test_stock_individual_info_em()
     # ret = test_stock_board_industry_summary_ths()
+    ret = test_stock_news_em()
     print(ret)
     # import akshare as ak
 

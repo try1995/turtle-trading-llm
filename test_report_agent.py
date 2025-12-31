@@ -1,5 +1,6 @@
 from agents.reportAgent import ReportAgent
 
 agent = ReportAgent()
-ret = agent.run("分析601601y研报数据")
+agent.set_symbol("601601")
+ret = agent.run("分析601601研报数据")
 print(ret)
