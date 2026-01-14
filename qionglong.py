@@ -60,3 +60,7 @@ def daily_task():
         plan.set_symbol(symbol)
         plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
         plan.send_allres_email()
+
+
+if __name__ == "__main__":
+    daily_task()
