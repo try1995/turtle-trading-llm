@@ -135,7 +135,7 @@ class baseAgent(ABC):
                 logger.info("收盘前，改成前一天")
                 now = datetime.now() - timedelta(days=1)
             xinqi = now.weekday() +1
-            return f"当前时间是：{now.strftime("%Y%m%d")}，星期{xinqi}", now.strftime("%Y%m%d")
+            return f"当前时间是：{now.strftime('%Y%m%d')}，星期{xinqi}", now.strftime("%Y%m%d")
     
     @logger.catch
     def send_res_email(self, md):
