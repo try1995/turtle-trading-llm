@@ -75,7 +75,7 @@ class baseAgent(ABC):
                     except Exception as e:
                         logger.error(f"方法执行失败:{e}")
                         response = "未获得"
-                    logger.debug(f"执行结果：{response}")
+                    logger.debug(f"执行结果：{response[:500]}...")
                     tool_call_res.append(response)
                     messages.append({
                         "tool_call_id": tool_call.id,
@@ -99,10 +99,14 @@ class baseAgent(ABC):
                 fun = self.tools_dict.get(tool_call.function.name)
                 if fun:
                     function_args = json.loads(tool_call.function.arguments)
-                    response = fun(**function_args)
-                    logger.debug(f"执行函数方法：{tool_call.function.name}, \
-                                参数：{tool_call.function.arguments},\
-                                执行结果：{str(response)[:500]}...")
+                    logger.info(f"执行函数方法：{tool_call.function.name}, \
+                                参数：{tool_call.function.arguments}")
+                    try:
+                        response = fun(**function_args)
+                    except Exception as e:
+                        logger.error(f"方法执行失败:{e}")
+                        response = "未获得"
+                    logger.debug(f"执行结果：{response[:500]}...")
                     messages.append({
                         "tool_call_id": tool_call.id,
                         "role": "tool",

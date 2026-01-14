@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import akshare as ak
 import pandas as pd
 from .base_tool import markdownpdf
+from loguru import logger
 from typing import get_type_hints, Optional, Any, List, Dict, Annotated
 
 
@@ -93,7 +94,11 @@ def stock_research_report_markdown(report_urls: Annotated[str, "英文逗号分�
             file_path = os.path.join(tempdir, "temp.pdf")
             with open(file_path, 'wb') as f:
                 f.write(ret.content)
-            result = markdownpdf(file_path)
+            try:
+                result = markdownpdf(file_path)
+            except Exception as e:
+                logger.error(e)
+                result = "无结果"
             report_res.append(f"第{index+1}家研报解析结果:\n"+result)
     return "\n\n".join(report_res)
 
