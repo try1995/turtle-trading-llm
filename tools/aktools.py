@@ -230,7 +230,7 @@ def stock_individual_fund_flow(
     return json.dumps(record, ensure_ascii=False)
 
 
-def get_trade_date(start_date, end_date):
+def get_trade_date(start_date="20201212", end_date="20901212"):
     # 交易日历
     trade_df = ak.tool_trade_date_hist_sina()
     trade_df["trade_date"] = pd.to_datetime(trade_df["trade_date"], errors='coerce')

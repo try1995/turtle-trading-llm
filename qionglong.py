@@ -11,6 +11,8 @@ import pandas as pd
 # 飙升榜-A股
 # stock_hot_up_em_df = ak.stock_hot_up_em()
 import pandas as pd
+from tools.aktools import  get_trade_date
+from datetime import datetime
 
 
 from agents.planAgent import PlanAgent
@@ -22,6 +24,9 @@ logger.add(sys.stderr, level="INFO")
 
 
 def daily_task():
+    now = datetime.now().strftime("%Y%m%d")
+    if now not in get_trade_date():
+        logger.info("未在交易日，跳过")
     stock_hot_deal_xq_df = ak.stock_hot_deal_xq(symbol="最热门")
     # 人气榜-A股
     stock_hot_rank_em_df = ak.stock_hot_rank_em()
@@ -38,13 +43,20 @@ def daily_task():
         stock_info_dict = stock_info.set_index('item')['value'].to_dict()
         if stock_info_dict["总市值"] < 800 * 100000000:  # 市值大于一千亿
             continue
-        if stock_info_dict["股票代码"].startswith("3"):
+        if symbol.startswith("3"):
             continue
-        if stock_info_dict["股票代码"] in exclude_symbol:
+        if symbol in exclude_symbol:
             continue
+        if symbol in include_symbol:
+            include_symbol.remove(symbol)
         print(stock_info)
         plan = PlanAgent()
         plan.set_symbol(symbol)
         plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
         plan.send_allres_email()
     
+    for symbol in include_symbol:
+        plan = PlanAgent()
+        plan.set_symbol(symbol)
+        plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
+        plan.send_allres_email()

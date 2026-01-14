@@ -131,7 +131,7 @@ class baseAgent(ABC):
             return f"当前时间是：{self.backtest_date}，星期{xinqi}"
         else:
             now = datetime.now()
-            if datetime.now().hour < 16:
+            if datetime.now().hour < 15:
                 logger.info("收盘前，改成前一天")
                 now = datetime.now() - timedelta(days=1)
             xinqi = now.weekday() +1

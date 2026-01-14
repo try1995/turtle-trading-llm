@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # ret = test_stock_research_report_em()
     # ret = test_markitdown()
     # ret = test_get_indicators()
-    # ret = get_trade_date("20250101", "20251212")
+    ret = get_trade_date()
     # ret = get_stock_info()
     # ret = test_stock_yjbb_em_df()
     # ret = test_stock_individual_fund_flow()
@@ -80,12 +80,10 @@ if __name__ == "__main__":
     # import akshare as ak
 
     # ret = stock_financial_report_sina("601601")
-    # print(ret)
+    print(ret)
 
     # 获取财务分析指标
     # indicators = ak.stock_financial_analysis_indicator(symbol="600600")
-    from report.dataReport import data_report
+    # from report.dataReport import data_report
     # print(data_report[0].dict())
-    print(data_report.report[0].model_json_schema())
-
-    import fe
+    # print(data_report.report[0].model_json_schema())
