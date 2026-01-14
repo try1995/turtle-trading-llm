@@ -3,7 +3,9 @@ import json
 from llm import client
 from loguru import logger
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
+from markdown import markdown
+from tools.send_email import send_message
 
 
 class baseAgent(ABC):
@@ -66,10 +68,14 @@ class baseAgent(ABC):
                 fun = self.tools_dict.get(tool_call.function.name)
                 if fun:
                     function_args = json.loads(tool_call.function.arguments)
-                    response = fun(**function_args)
-                    logger.debug(f"执行函数方法：{tool_call.function.name}, \
-                                参数：{tool_call.function.arguments},\
-                                执行结果：{response}")
+                    logger.info(f"执行函数方法：{tool_call.function.name}, \
+                                参数：{tool_call.function.arguments}")
+                    try:
+                        response = fun(**function_args)
+                    except Exception as e:
+                        logger.error(f"方法执行失败:{e}")
+                        response = "未获得"
+                    logger.debug(f"执行结果：{response}")
                     tool_call_res.append(response)
                     messages.append({
                         "tool_call_id": tool_call.id,
@@ -124,6 +130,14 @@ class baseAgent(ABC):
             xinqi = datetime.strptime(self.backtest_date, "%Y%m%d").weekday() + 1
             return f"当前时间是：{self.backtest_date}，星期{xinqi}"
         else:
-            now = datetime.now().strftime("%Y%m%d")
-            xinqi = datetime.now().weekday() +1
-            return f"当前时间是：{now}，星期{xinqi}"
+            now = datetime.now()
+            if datetime.now().hour < 16:
+                logger.info("收盘前，改成前一天")
+                now = datetime.now() - timedelta(days=1)
+            xinqi = now.weekday() +1
+            return f"当前时间是：{now.strftime("%Y%m%d")}，星期{xinqi}", now.strftime("%Y%m%d")
+    
+    @logger.catch
+    def send_res_email(self, md):
+        html = markdown(md)
+        send_message(toaddrs=os.environ.get("toaddrs").split("|"), subject="盘后自动跑批", content=html)

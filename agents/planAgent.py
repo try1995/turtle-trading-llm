@@ -9,7 +9,7 @@ from .baseAgent import baseAgent
 from .InvestmentAgent import InvestmentAgent
 from json_repair import repair_json
 from tools.all_types import EmAllagents
-from tools.base_tool import get_cache
+from tools.base_tool import get_cache, get_all_agent_res
 
 
 class PlanAgent(baseAgent):
@@ -117,3 +117,7 @@ class PlanAgent(baseAgent):
         plan = repair_json(plan_raw, return_objects=True)
         self.act(plan)
 
+
+    def send_allres_email(self):
+        md = get_all_agent_res(self.symbol, self.get_date_desc()[1])
+        self.send_res_email(md)

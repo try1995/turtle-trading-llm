@@ -25,7 +25,7 @@ class ReportAgent(baseAgent):
             {"role": "system", "content": sys_report_prompt},
             {
                 "role": "user",
-                "content": self.get_date_desc()
+                "content": self.get_date_desc()[0]
             },
             {
                 "role": "user",

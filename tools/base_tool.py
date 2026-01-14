@@ -5,6 +5,9 @@ import inspect
 from datetime import datetime
 from typing import get_type_hints
 from markitdown import MarkItDown
+from typing import Annotated
+from .all_types import EmAllagents
+
 
 def get_func_schema(func):
     """
@@ -68,8 +71,8 @@ def save_response(func):
     def wrapper(self, *args, **kwargs):
         ret =  func(self, *args, **kwargs)
         date_dir = self.backtest_date if self.backtest_date else datetime.now().strftime("%Y%m%d")
-        os.makedirs(os.path.join(config.cache_dir, self.symbol, date_dir), exist_ok=True)
-        with open(os.path.join(config.cache_dir, self.symbol, date_dir, self.name+"_"+func.__name__), "w") as f:
+        os.makedirs(os.path.join(config.cache_dir, date_dir, self.symbol), exist_ok=True)
+        with open(os.path.join(config.cache_dir, date_dir, self.symbol, self.name+"_"+func.__name__), "w") as f:
             if isinstance(ret, str):
                 f.write(ret)
             else:
@@ -79,7 +82,7 @@ def save_response(func):
 
 
 def get_cache(cur_date, symbol, agent_name):
-    path = os.path.join(config.cache_dir, symbol, cur_date, agent_name+"_run")
+    path = os.path.join(config.cache_dir, cur_date, symbol, agent_name+"_run")
     if os.path.exists(path):
         with open(path, "r") as f:
             cache_res = f.read()
@@ -87,3 +90,28 @@ def get_cache(cur_date, symbol, agent_name):
     else:
         return "无结果"
         
+
+def get_agent_res(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"]
+):
+    """
+    描述：获取agent的运行结果，包括dataAgent, reportAgent
+    """
+    data_agent_res = get_cache(cur_date, symbol, EmAllagents.dataAgent.name)
+    report_agent_res = get_cache(cur_date, symbol, EmAllagents.reportAgent.name)
+    public_agent_res = get_cache(cur_date, symbol, EmAllagents.publicOptionAgent.name)
+    
+    res = "行情及技术指标解析：" + data_agent_res + \
+        "\n\n研报解析：" + report_agent_res + \
+        "\n\n舆情解析：" + public_agent_res
+    return res
+
+
+def get_all_agent_res(symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"]
+):
+    res = get_agent_res(symbol, cur_date)
+    invest_agent_res = get_cache(cur_date, symbol, EmAllagents.investmentAgent.name)
+    
+    return invest_agent_res + "\n\n*参考*\n\n" + res

@@ -98,7 +98,6 @@ def stock_research_report_markdown(report_urls: Annotated[str, "英文逗号分�
     return "\n\n".join(report_res)
 
 
-# ---------- Supertrend numba 加速 ----------
 def get_indicators(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
     cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
@@ -342,4 +341,34 @@ def stock_news_em(
     """
     stock_news_em_df = ak.stock_news_em(symbol).drop(columns=["新闻链接"])
     record = stock_news_em_df.to_dict("records")
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_financial_report_sina(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+):
+    """
+    描述: 财务报表-三大报表
+    
+    三种报表类型：资产负债表, 利润表, 现金流量表
+    
+    输出参数
+
+    名称	类型	描述
+    报告日	object	报告日期
+    流动资产	object	-
+    ...	object	-
+    类型	object	-
+    更新日期	object	-
+    """
+
+    market = get_market(symbol)
+    balance_sheet1 = ak.stock_financial_report_sina(stock=market+symbol, symbol="资产负债表").to_dict("records")[0]
+    balance_sheet2 = ak.stock_financial_report_sina(stock=market+symbol, symbol="利润表").to_dict("records")[0]
+    balance_sheet3 = ak.stock_financial_report_sina(stock=market+symbol, symbol="现金流量表").to_dict("records")[0]
+    record = {
+        "资产负债表": balance_sheet1,
+        "利润表": balance_sheet2,
+        "现金流量表": balance_sheet3
+    }
     return json.dumps(record, ensure_ascii=False)

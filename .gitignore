@@ -4,3 +4,4 @@ aktools_log.log
 .pybrokercache/
 .ipynb_checkpoints/
 .pyturtlecache/
+.env

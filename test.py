@@ -55,7 +55,7 @@ def test_stock_board_industry_summary_ths():
 
 
 def test_stock_news_em():
-    return stock_news_em("601601")
+    return stock_news_em("000001")
 
 if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
@@ -69,10 +69,23 @@ if __name__ == "__main__":
     # ret = test_stock_value_em()
     # ret = test_stock_individual_info_em()
     # ret = test_stock_board_industry_summary_ths()
-    ret = test_stock_news_em()
-    print(ret)
+    # ret = test_stock_news_em()
+    # print(ret)
     # import akshare as ak
 
     # stock_news_main_cx_df = ak.stock_news_main_cx()
     # print(stock_news_main_cx_df.head(2))
     # print(stock_news_main_cx_df["url"].to_list()[0])
+
+    # import akshare as ak
+
+    # ret = stock_financial_report_sina("601601")
+    # print(ret)
+
+    # 获取财务分析指标
+    # indicators = ak.stock_financial_analysis_indicator(symbol="600600")
+    from report.dataReport import data_report
+    # print(data_report[0].dict())
+    print(data_report.report[0].model_json_schema())
+
+    import fe
