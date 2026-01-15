@@ -34,8 +34,8 @@ ng></div>
                                   overflow: hidden;
                                   padding: 15px 15px 20px;">
         <div class="tips" style="padding:15px;">
-            <p style=" list-style: 160%%; margin: 10px 0;"><strong><b>尊敬的汤先生：</b><br><br>
-        <b>您好</b><br/> </strong></p >
+            <p style=" list-style: 160%%; margin: 10px 0;"><strong><b>尊敬的汤总：</b><br><br>
+        <b>恭喜发财您嘞</b><br/> </strong></p >
         </div>
         %s
         <div class="tips" style="padding:15px;">
