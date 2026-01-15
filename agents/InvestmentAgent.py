@@ -1,5 +1,5 @@
 from loguru import logger
-from prompt import sys_investment_prompt, sys_investment_prompt_v1
+from prompt import sys_investment_prompt, sys_investment_prompt
 from .baseAgent import baseAgent
 from tools import get_func_schema, save_response, stock_value_em, get_cache, get_agent_res
 from tools.all_types import EmAllagents
@@ -22,7 +22,7 @@ class InvestmentAgent(baseAgent):
     def run(self, question):
         logger.info(f"{self.name}：当前执行任务：{question}")
         messages = [
-            {"role": "system", "content": sys_investment_prompt_v1},
+            {"role": "system", "content": sys_investment_prompt},
             {
                 "role": "user",
                 "content": self.get_date_desc()[0]
@@ -35,7 +35,7 @@ class InvestmentAgent(baseAgent):
         response_message = self.invork_with_tools(messages)
         tool_call_res = self.act(messages, response_message)
         new_messages=[
-            {"role": "system", "content": sys_investment_prompt_v1},
+            {"role": "system", "content": sys_investment_prompt},
             {
                 "role": "user",
                 "content": "\n\n".join(tool_call_res)

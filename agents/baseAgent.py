@@ -132,7 +132,7 @@ class baseAgent(ABC):
     def get_date_desc(self):
         if self.backtest:
             xinqi = datetime.strptime(self.backtest_date, "%Y%m%d").weekday() + 1
-            return f"当前时间是：{self.backtest_date}，星期{xinqi}"
+            return f"当前时间是：{self.backtest_date}，星期{xinqi}", self.backtest_date
         else:
             now = datetime.now()
             if datetime.now().hour < 15:
@@ -142,6 +142,6 @@ class baseAgent(ABC):
             return f"当前时间是：{now.strftime('%Y%m%d')}，星期{xinqi}", now.strftime("%Y%m%d")
     
     @logger.catch
-    def send_res_email(self, md):
+    def send_res_email(self, md, subject):
         html = markdown(md)
-        send_message(toaddrs=os.environ.get("toaddrs").split("|"), subject="盘后自动跑批", content=html)
+        send_message(toaddrs=os.environ.get("toaddrs").split("|"), subject=subject, content=html)

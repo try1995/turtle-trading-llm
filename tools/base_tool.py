@@ -88,7 +88,7 @@ def get_cache(cur_date, symbol, agent_name):
             cache_res = f.read()
         return cache_res
     else:
-        return "无结果"
+        return None
         
 
 def get_agent_res(

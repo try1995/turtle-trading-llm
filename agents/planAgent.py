@@ -23,7 +23,7 @@ class PlanAgent(baseAgent):
             EmAllagents.investmentAgent.name: InvestmentAgent()}
         self.agent_res = {}
         self.last_invest_suggestion = ""
-        self.use_cache = False
+        self.use_cache = True
 
     def set_symbol(self, symbol):
         super().set_symbol(symbol)
@@ -91,7 +91,7 @@ class PlanAgent(baseAgent):
 
     
     def get_cache_res(self, symbol, agent_name):
-        res = get_cache(self.backtest_date, symbol, agent_name)
+        res = get_cache(symbol, self.get_date_desc()[1], agent_name)
         if res:
             logger.debug("load cache successfully!!!")
         return res
@@ -107,7 +107,7 @@ class PlanAgent(baseAgent):
                     agent_res = agent.run(agent_task)
             else:
                 agent_res = agent.run(agent_task)
-                self.agent_res[agent_name] = agent_res
+            self.agent_res[agent_name] = agent_res
             logger.info("*"*99)
                 
     
@@ -118,6 +118,6 @@ class PlanAgent(baseAgent):
         self.act(plan)
 
 
-    def send_allres_email(self):
+    def send_allres_email(self, subject):
         md = get_all_agent_res(self.symbol, self.get_date_desc()[1])
-        self.send_res_email(md)
+        self.send_res_email(md, subject)

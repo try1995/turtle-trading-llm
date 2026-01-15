@@ -52,15 +52,27 @@ def daily_task():
         print(stock_info)
         plan = PlanAgent()
         plan.set_symbol(symbol)
-        plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
-        plan.send_allres_email()
+        maxretry = 3
+        while maxretry:
+            try:
+                plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
+                plan.send_allres_email(subject=f"未持仓{item.股票简称}分析")
+                break
+            except Exception as e:
+                logger.error(e)
+                maxretry -= 1
     
     for symbol in include_symbol:
         plan = PlanAgent()
         plan.set_symbol(symbol)
-        plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
-        plan.send_allres_email()
-
+        maxretry = 3
+        while maxretry:
+            try:
+                plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
+                plan.send_allres_email(subject=f"持仓{symbol}分析")
+            except Exception as e:
+                logger.error(e)
+                maxretry -= 1
 
 if __name__ == "__main__":
     daily_task()
