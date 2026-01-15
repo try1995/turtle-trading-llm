@@ -56,7 +56,7 @@ def daily_task():
         while maxretry:
             try:
                 plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
-                plan.send_allres_email(subject=f"未持仓{item.股票简称}分析")
+                plan.send_allres_email(subject=f"{item.股票简称}分析")
                 break
             except Exception as e:
                 logger.error(e)

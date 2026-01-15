@@ -103,7 +103,7 @@ class PlanAgent(baseAgent):
             agent = self.agent_dict[agent_name]
             if self.use_cache:
                 agent_res = self.get_cache_res(self.symbol, agent_name)
-                if not agent_res:
+                if agent_res == "无结果":
                     agent_res = agent.run(agent_task)
             else:
                 agent_res = agent.run(agent_task)
