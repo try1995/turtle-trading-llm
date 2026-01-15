@@ -91,9 +91,9 @@ class PlanAgent(baseAgent):
 
     
     def get_cache_res(self, symbol, agent_name):
-        res = get_cache(symbol, self.get_date_desc()[1], agent_name)
-        if res:
-            logger.debug("load cache successfully!!!")
+        res = get_cache(self.get_date_desc()[1], symbol, agent_name)
+        if res != "无结果":
+            logger.info("load cache successfully!!!")
         return res
             
     def act(self, plan):
