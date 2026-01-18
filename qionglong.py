@@ -35,9 +35,23 @@ def daily_task():
     df = pd.merge(stock_hot_deal_xq_df.head(200), stock_hot_rank_em_df.head(200), how='inner')
     
     # 茅台太贵
-    exclude_symbol = ["600519"]
-    include_symbol = ["603259"]
+    exclude_symbol = os.environ.get("exclude_symbol").split("|")
+    # 持仓股票
+    position_symbol = os.environ.get("position_symbol").split("|")
 
+    for symbol in position_symbol:
+        plan = PlanAgent()
+        plan.set_symbol(symbol)
+        maxretry = 3
+        while maxretry:
+            try:
+                plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
+                plan.send_allres_email(subject=f"持仓{symbol}分析")
+                break
+            except Exception as e:
+                logger.error(e)
+                maxretry -= 1
+                
     for _, item in df.iterrows():
         symbol = item.股票代码[2:]
         stock_info = ak.stock_individual_info_em(symbol)
@@ -48,8 +62,8 @@ def daily_task():
             continue
         if symbol in exclude_symbol:
             continue
-        if symbol in include_symbol:
-            include_symbol.remove(symbol)
+        if symbol in position_symbol:
+            continue
         print(stock_info)
         plan = PlanAgent()
         plan.set_symbol(symbol)
@@ -63,18 +77,7 @@ def daily_task():
                 logger.error(e)
                 maxretry -= 1
     
-    for symbol in include_symbol:
-        plan = PlanAgent()
-        plan.set_symbol(symbol)
-        maxretry = 3
-        while maxretry:
-            try:
-                plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
-                plan.send_allres_email(subject=f"持仓{symbol}分析")
-                break
-            except Exception as e:
-                logger.error(e)
-                maxretry -= 1
+
 
 if __name__ == "__main__":
     daily_task()
