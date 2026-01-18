@@ -45,11 +45,12 @@ class DataAgent(baseAgent):
             ]
             response_message = self.invork_with_tools(messages)
             tool_call_res = self.act(messages, response_message)
+            res_str = '\n\n'.join(tool_call_res)
             new_messages=[
                 {"role": "system", "content": sys_data_prompt},
                 {
                     "role": "user",
-                    "content": f"基于用户提供的数据分析：{self.symbol}{task}\n用户提供数据如下：{'\n\n'.join(tool_call_res)}"
+                    "content": f"基于用户提供的数据分析：{self.symbol}{task}\n用户提供数据如下：{res_str}"
                 }
             ]
             response_stream_res = self.invork(new_messages)
