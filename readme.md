@@ -45,7 +45,7 @@
 ```
 qionglong.py
 
-在青龙面板拉取本仓库
+在青龙面板-添加订阅，订阅本仓库，关闭自动添加任务和自动删除任务
 添加定时任务
 try1995_turtle-trading-llm/qionglong.py 
 # 定时规则为每天天盘后三点半
