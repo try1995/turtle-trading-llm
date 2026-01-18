@@ -3,8 +3,15 @@ api_key="sk-"
 model=""
 base_url=""
 
-# 可选，给自己邮箱发邮件使用
+# 以下可选，给自己邮箱发邮件使用
+# 自己邮箱
 smtp_user=""
+# 邮箱密码
 smtp_password=""
+# 邮箱服务器
 smtp_server=""
+# 可以发给自己，多个|分隔
 toaddrs=""
+
+# 搜索引擎 https://app.tavily.com/home 新人每月1000次
+TAVILY_API_KEY=""

@@ -52,30 +52,30 @@ def daily_task():
                 logger.error(e)
                 maxretry -= 1
                 
-    for _, item in df.iterrows():
-        symbol = item.股票代码[2:]
-        stock_info = ak.stock_individual_info_em(symbol)
-        stock_info_dict = stock_info.set_index('item')['value'].to_dict()
-        if stock_info_dict["总市值"] < 800 * 100000000:  # 市值大于一千亿
-            continue
-        if symbol.startswith("3"):
-            continue
-        if symbol in exclude_symbol:
-            continue
-        if symbol in position_symbol:
-            continue
-        print(stock_info)
-        plan = PlanAgent()
-        plan.set_symbol(symbol)
-        maxretry = 3
-        while maxretry:
-            try:
-                plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
-                plan.send_allres_email(subject=f"{item.股票简称}分析")
-                break
-            except Exception as e:
-                logger.error(e)
-                maxretry -= 1
+    # for _, item in df.iterrows():
+    #     symbol = item.股票代码[2:]
+    #     stock_info = ak.stock_individual_info_em(symbol)
+    #     stock_info_dict = stock_info.set_index('item')['value'].to_dict()
+    #     if stock_info_dict["总市值"] < 800 * 100000000:  # 市值大于一千亿
+    #         continue
+    #     if symbol.startswith("3"):
+    #         continue
+    #     if symbol in exclude_symbol:
+    #         continue
+    #     if symbol in position_symbol:
+    #         continue
+    #     print(stock_info)
+    #     plan = PlanAgent()
+    #     plan.set_symbol(symbol)
+    #     maxretry = 3
+    #     while maxretry:
+    #         try:
+    #             plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
+    #             plan.send_allres_email(subject=f"{item.股票简称}分析")
+    #             break
+    #         except Exception as e:
+    #             logger.error(e)
+    #             maxretry -= 1
     
 
 
