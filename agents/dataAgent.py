@@ -12,7 +12,10 @@ from json_repair import repair_json
 class DataAgent(baseAgent):
     def __init__(self):
         super().__init__()
-        self.tools = [stock_zh_a_hist, get_indicators, stock_individual_fund_flow, stock_board_industry_summary_ths, stock_individual_info_em, stock_financial_report_sina]
+        self.tools = [stock_zh_a_hist, get_indicators, stock_individual_fund_flow, \
+            stock_board_industry_summary_ths, stock_individual_info_em, \
+            stock_financial_report_sina, stock_zh_growth_comparison_em, \
+            stock_zh_valuation_comparison_em, stock_zh_scale_comparison_em]
         self.name = EmAllagents.dataAgent.name
         self.tools_regist = [get_func_schema(func) for func in self.tools]
         self.tools_dict = {fun.__name__:fun for fun in self.tools}
@@ -27,7 +30,7 @@ class DataAgent(baseAgent):
     def run(self, question):
         logger.info(f"{self.name}：当前执行任务：{question}")
         all_data = ""
-        sub_task = ["基本面数据","技术面数据","行业与竞争数据"]
+        sub_task = ["基本面数据","技术面数据","同行对比"]
         for task in sub_task:
             logger.info(f"{self.name}：当前执行任务：{self.symbol} {task}")
             messages = [
@@ -47,11 +50,7 @@ class DataAgent(baseAgent):
                 {"role": "system", "content": sys_data_prompt},
                 {
                     "role": "user",
-                    "content": "\n\n".join(tool_call_res)
-                },
-                {
-                    "role": "user",
-                    "content": f"分析：{self.symbol}{task}"
+                    "content": f"基于用户提供的数据分析：{self.symbol}{task}\n用户提供数据如下：{"\n\n".join(tool_call_res)}"
                 }
             ]
             response_stream_res = self.invork(new_messages)

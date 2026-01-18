@@ -5,6 +5,7 @@ from copy import deepcopy
 from prompt import sys_plan_prompt
 from .dataAgent import DataAgent
 from .reportAgent import ReportAgent
+from .publicOptionAgent import PublicOptionAgent
 from .baseAgent import baseAgent
 from .InvestmentAgent import InvestmentAgent
 from json_repair import repair_json
@@ -16,10 +17,11 @@ class PlanAgent(baseAgent):
     def __init__(self):
         super().__init__()
         self.name = EmAllagents.planAgent.name
-        self.agent = [DataAgent, ReportAgent]
+        self.agent = [DataAgent, ReportAgent, PublicOptionAgent]
         self.agent_dict:dict[str, baseAgent] = {
             EmAllagents.dataAgent.name:DataAgent(), 
             EmAllagents.reportAgent.name:ReportAgent(),
+            EmAllagents.publicOptionAgent:PublicOptionAgent(),
             EmAllagents.investmentAgent.name: InvestmentAgent()}
         self.agent_res = {}
         self.last_invest_suggestion = ""
@@ -111,8 +113,9 @@ class PlanAgent(baseAgent):
             logger.info("*"*99)
                 
     
-    def run(self, question, human_in_loop=True):
+    def run(self, question, human_in_loop=False, use_cache=True):
         logger.info(f"{self.name}：当前执行任务：{question}")
+        self.use_cache = use_cache
         plan_raw = self.invork(question, human_in_loop)
         plan = repair_json(plan_raw, return_objects=True)
         self.act(plan)

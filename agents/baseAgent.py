@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from markdown import markdown
 from tools.send_email import send_message
+from tools.aktools import get_trade_date
 
 
 class baseAgent(ABC):
@@ -59,6 +60,19 @@ class baseAgent(ABC):
         return response_message
 
     
+    def exec_tools(self, fun, tool_call):
+        function_args = json.loads(tool_call.function.arguments)
+        logger.info(f"当前执行函数描述：{fun.__doc__.strip().splitlines()[0]}\n\
+                    执行函数方法：{tool_call.function.name}\n\
+                    执行函数参数：{tool_call.function.arguments}\n")
+        try:
+            response = fun(**function_args)
+        except Exception as e:
+            logger.error(f"方法执行失败:{e}，请检查")
+            response = "未获得"
+        logger.debug(f"执行结果：{response[:500]}...")
+        return response
+    
     def act_with_tools(self, messages: list, response_message):
         # Handle function calls
         tool_call_res = []
@@ -67,15 +81,7 @@ class baseAgent(ABC):
             for tool_call in response_message.tool_calls:
                 fun = self.tools_dict.get(tool_call.function.name)
                 if fun:
-                    function_args = json.loads(tool_call.function.arguments)
-                    logger.info(f"执行函数方法：{tool_call.function.name}, \
-                                参数：{tool_call.function.arguments}")
-                    try:
-                        response = fun(**function_args)
-                    except Exception as e:
-                        logger.error(f"方法执行失败:{e}")
-                        response = "未获得"
-                    logger.debug(f"执行结果：{response[:500]}...")
+                    response = self.exec_tools(fun, tool_call)
                     tool_call_res.append(response)
                     messages.append({
                         "tool_call_id": tool_call.id,
@@ -98,15 +104,7 @@ class baseAgent(ABC):
             for tool_call in response_message.tool_calls:
                 fun = self.tools_dict.get(tool_call.function.name)
                 if fun:
-                    function_args = json.loads(tool_call.function.arguments)
-                    logger.info(f"执行函数方法：{tool_call.function.name}, \
-                                参数：{tool_call.function.arguments}")
-                    try:
-                        response = fun(**function_args)
-                    except Exception as e:
-                        logger.error(f"方法执行失败:{e}")
-                        response = "未获得"
-                    logger.debug(f"执行结果：{response[:500]}...")
+                    response = self.exec_tools(fun, tool_call)
                     messages.append({
                         "tool_call_id": tool_call.id,
                         "role": "tool",
@@ -135,9 +133,16 @@ class baseAgent(ABC):
             return f"当前时间是：{self.backtest_date}，星期{xinqi}", self.backtest_date
         else:
             now = datetime.now()
-            if datetime.now().hour < 15:
-                logger.info("收盘前，改成前一天")
-                now = datetime.now() - timedelta(days=1)
+            # 先判断是否在交易日
+            trade_date = get_trade_date(end_date=now.strftime('%Y%m%d'))
+            if now.strftime('%Y%m%d') in trade_date:
+                if datetime.now().hour < 15:
+                    now = datetime.strptime(trade_date[-2], '%Y%m%d')
+                    logger.info("收盘前，改成前一个交易日")
+            else:
+                # 不在交易日则取最近的交易日
+                now = datetime.strptime(trade_date[-1], '%Y%m%d')
+                logger.info(f"未在交易日，改成前一个交易日{trade_date[-1]}")
             xinqi = now.weekday() +1
             return f"当前时间是：{now.strftime('%Y%m%d')}，星期{xinqi}", now.strftime("%Y%m%d")
     

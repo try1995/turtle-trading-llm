@@ -302,33 +302,6 @@ def stock_individual_info_em(
     return json.dumps(record, ensure_ascii=False)
 
 
-def stock_board_industry_summary_ths(
-    symbol: Annotated[str, "股票代码，e.g. 000001"]
-):
-    """
-    描述: 查询指定股票所在行业涨跌信息
-
-    输出参数
-
-    名称	类型	描述
-    板块	object	-
-    涨跌幅	object	注意单位: %
-    总成交量	float64	注意单位: 万手
-    总成交额	float64	注意单位: 亿元
-    净流入	float64	注意单位: 亿元
-    上涨家数	float64	-
-    下跌家数	float64	-
-    均价	float64	-
-    领涨股	float64	-
-    领涨股-最新价	object	-
-    领涨股-涨跌幅	object	注意单位: %
-    """
-    industry = json.loads(stock_individual_info_em(symbol))["行业"]
-    stock_board_industry_summary_ths_df = ak.stock_board_industry_summary_ths().drop(columns=["序号"])
-    record = stock_board_industry_summary_ths_df[stock_board_industry_summary_ths_df["板块"]==industry].to_dict("records")[0]
-    return json.dumps(record, ensure_ascii=False)
-
-
 def stock_news_em(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
 ):
@@ -344,7 +317,7 @@ def stock_news_em(
     发布时间	object	-
     文章来源	object	-
     """
-    stock_news_em_df = ak.stock_news_em(symbol).drop(columns=["新闻链接"])
+    stock_news_em_df = ak.stock_news_em(symbol).drop(columns=["新闻链接"]).sort_values(by='发布时间', ascending=False)
     record = stock_news_em_df.to_dict("records")
     return json.dumps(record, ensure_ascii=False)
 
@@ -376,4 +349,127 @@ def stock_financial_report_sina(
         "利润表": balance_sheet2,
         "现金流量表": balance_sheet3
     }
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_board_industry_summary_ths(
+    symbol: Annotated[str, "股票代码，e.g. 000001"]
+):
+    """
+    描述: 同行比较-查询指定股票所在行业涨跌信息
+
+    输出参数
+
+    名称	类型	描述
+    板块	object	-
+    涨跌幅	object	注意单位: %
+    总成交量	float64	注意单位: 万手
+    总成交额	float64	注意单位: 亿元
+    净流入	float64	注意单位: 亿元
+    上涨家数	float64	-
+    下跌家数	float64	-
+    均价	float64	-
+    领涨股	float64	-
+    领涨股-最新价	object	-
+    领涨股-涨跌幅	object	注意单位: %
+    """
+    industry = json.loads(stock_individual_info_em(symbol))["行业"]
+    stock_board_industry_summary_ths_df = ak.stock_board_industry_summary_ths().drop(columns=["序号"])
+    record = stock_board_industry_summary_ths_df[stock_board_industry_summary_ths_df["板块"]==industry].to_dict("records")[0]
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_zh_growth_comparison_em(
+    symbol: Annotated[str, "股票代码，e.g. 000001"]
+):
+    """
+    描述: 同行比较-成长性比较
+    
+    输出参数
+
+    名称	类型	描述
+    代码	object	-
+    简称	object	-
+    基本每股收益增长率-3年复合	float64	-
+    基本每股收益增长率-24A	float64	-
+    基本每股收益增长率-TTM	float64	-
+    基本每股收益增长率-25E	float64	-
+    基本每股收益增长率-26E	float64	-
+    基本每股收益增长率-27E	float64	-
+    营业收入增长率-3年复合	float64	-
+    营业收入增长率-24A	float64	-
+    营业收入增长率-TTM	float64	-
+    营业收入增长率-25E	float64	-
+    营业收入增长率-26E	float64	-
+    营业收入增长率-27E	float64	-
+    净利润增长率-3年复合	float64	-
+    净利润增长率-24A	float64	-
+    净利润增长率-TTM	float64	-
+    净利润增长率-25E	float64	-
+    净利润增长率-26E	float64	-
+    净利润增长率-27E	float64	-
+    基本每股收益增长率-3年复合排名	float64	-
+    """
+    stock_zh_growth_comparison_em_df = ak.stock_zh_growth_comparison_em(symbol=get_market(symbol).upper()+symbol)
+    record = stock_zh_growth_comparison_em_df.to_dict("records")
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_zh_valuation_comparison_em(
+    symbol: Annotated[str, "股票代码，e.g. 000001"]
+):
+    """
+    描述: 同行比较-估值比较
+    
+    输出参数
+
+    名称	类型	描述
+    排名	object	-
+    代码	object	-
+    简称	object	-
+    PEG	float64	-
+    市盈率-24A	float64	-
+    市盈率-TTM	float64	-
+    市盈率-25E	float64	-
+    市盈率-26E	float64	-
+    市盈率-27E	float64	-
+    市销率-24A	float64	-
+    市销率-TTM	float64	-
+    市销率-25E	float64	-
+    市销率-26E	float64	-
+    市销率-27E	float64	-
+    市净率-24A	float64	-
+    市净率-MRQ	float64	-
+    市现率1-24A	float64	-
+    市现率1-TTM	float64	-
+    市现率2-24A	float64	-
+    市现率2-TTM	float64	-
+    EV/EBITDA-24A	float64	-
+    """
+    stock_zh_valuation_comparison_em_df = ak.stock_zh_valuation_comparison_em(symbol=get_market(symbol).upper()+symbol)
+    record = stock_zh_valuation_comparison_em_df.to_dict("records")
+    return json.dumps(record, ensure_ascii=False)
+
+def stock_zh_scale_comparison_em(
+    symbol: Annotated[str, "股票代码，e.g. 000001"]
+):
+    """
+    描述: 同行比较-公司规模
+    
+    输出参数
+
+    名称	类型	描述
+    代码	object	-
+    简称	object	-
+    总市值	float64	-
+    总市值排名	int64	-
+    流通市值	float64	-
+    流通市值排名	int64	-
+    营业收入	float64	-
+    营业收入排名	int64	-
+    净利润	float64	-
+    净利润排名	int64	-
+    """
+    stock_zh_scale_comparison_em_df = ak.stock_zh_scale_comparison_em(symbol=get_market(symbol).upper()+symbol)
+    record = stock_zh_scale_comparison_em_df.to_dict("records")
     return json.dumps(record, ensure_ascii=False)

@@ -11,7 +11,7 @@ import pandas as pd
 # 飙升榜-A股
 # stock_hot_up_em_df = ak.stock_hot_up_em()
 import pandas as pd
-from tools.aktools import  get_trade_date
+from tools.aktools import get_trade_date
 from datetime import datetime
 
 
