@@ -27,6 +27,7 @@ def daily_task():
     now = datetime.now().strftime("%Y%m%d")
     if now not in get_trade_date():
         logger.info("未在交易日，跳过")
+        return
     stock_hot_deal_xq_df = ak.stock_hot_deal_xq(symbol="最热门")
     # 人气榜-A股
     stock_hot_rank_em_df = ak.stock_hot_rank_em()
