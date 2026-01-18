@@ -1,0 +1,10 @@
+# 必选大模型相关参数
+api_key="sk-"
+model=""
+base_url=""
+
+# 可选，给自己邮箱发邮件使用
+smtp_user=""
+smtp_password=""
+smtp_server=""
+toaddrs=""

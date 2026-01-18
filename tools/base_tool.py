@@ -70,7 +70,7 @@ def markdownpdf(file_path):
 def save_response(func):
     def wrapper(self, *args, **kwargs):
         ret =  func(self, *args, **kwargs)
-        date_dir = self.backtest_date if self.backtest_date else datetime.now().strftime("%Y%m%d")
+        date_dir = self.get_date_desc()[-1]
         os.makedirs(os.path.join(config.cache_dir, date_dir, self.symbol), exist_ok=True)
         with open(os.path.join(config.cache_dir, date_dir, self.symbol, self.name+"_"+func.__name__), "w") as f:
             if isinstance(ret, str):

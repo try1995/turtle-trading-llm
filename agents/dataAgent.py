@@ -5,7 +5,6 @@ from prompt import sys_data_prompt
 from .baseAgent import baseAgent
 from tools.all_types import EmAllagents
 from tools import *
-from report.dataReport import data_report, Paragraph1, DataReport
 from json_repair import repair_json
 
 

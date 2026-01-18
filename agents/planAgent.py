@@ -10,7 +10,7 @@ from .baseAgent import baseAgent
 from .InvestmentAgent import InvestmentAgent
 from json_repair import repair_json
 from tools.all_types import EmAllagents
-from tools.base_tool import get_cache, get_all_agent_res
+from tools.base_tool import get_cache, get_all_agent_res, save_response
 
 
 class PlanAgent(baseAgent):
@@ -21,7 +21,7 @@ class PlanAgent(baseAgent):
         self.agent_dict:dict[str, baseAgent] = {
             EmAllagents.dataAgent.name:DataAgent(), 
             EmAllagents.reportAgent.name:ReportAgent(),
-            EmAllagents.publicOptionAgent:PublicOptionAgent(),
+            EmAllagents.publicOptionAgent.name:PublicOptionAgent(),
             EmAllagents.investmentAgent.name: InvestmentAgent()}
         self.agent_res = {}
         self.last_invest_suggestion = ""
@@ -95,7 +95,7 @@ class PlanAgent(baseAgent):
     def get_cache_res(self, symbol, agent_name):
         res = get_cache(self.get_date_desc()[1], symbol, agent_name)
         if res != "无结果":
-            logger.info("load cache successfully!!!")
+            logger.info(f"{agent_name}：load cache successfully!!!")
         return res
             
     def act(self, plan):
@@ -113,12 +113,19 @@ class PlanAgent(baseAgent):
             logger.info("*"*99)
                 
     
+    @save_response
     def run(self, question, human_in_loop=False, use_cache=True):
         logger.info(f"{self.name}：当前执行任务：{question}")
         self.use_cache = use_cache
-        plan_raw = self.invork(question, human_in_loop)
+        if self.use_cache:
+            agent_res = self.get_cache_res(self.symbol, self.name)
+            if agent_res == "无结果":
+                plan_raw = self.invork(question, human_in_loop)
+            else:
+                plan_raw = agent_res
         plan = repair_json(plan_raw, return_objects=True)
         self.act(plan)
+        return plan_raw
 
 
     def send_allres_email(self, subject):

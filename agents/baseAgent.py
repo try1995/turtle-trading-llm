@@ -50,7 +50,7 @@ class baseAgent(ABC):
 
     def invork_with_tools(self, messages):
         response = client.chat.completions.create(
-            model="myllm:latest",
+            model=os.environ.get("model"),
             messages=messages,
             tools=self.tools_regist,
             tool_choice="auto"
@@ -138,11 +138,11 @@ class baseAgent(ABC):
             if now.strftime('%Y%m%d') in trade_date:
                 if datetime.now().hour < 15:
                     now = datetime.strptime(trade_date[-2], '%Y%m%d')
-                    logger.info("收盘前，改成前一个交易日")
+                    logger.info(f"{self.name}：收盘前，改成前一个交易日")
             else:
                 # 不在交易日则取最近的交易日
                 now = datetime.strptime(trade_date[-1], '%Y%m%d')
-                logger.info(f"未在交易日，改成前一个交易日{trade_date[-1]}")
+                logger.info(f"{self.name}：未在交易日，改成前一个交易日{trade_date[-1]}")
             xinqi = now.weekday() +1
             return f"当前时间是：{now.strftime('%Y%m%d')}，星期{xinqi}", now.strftime("%Y%m%d")
     
