@@ -22,8 +22,8 @@ import sys
 logger.remove()                                     # 去掉默认全局配置
 logger.add(sys.stderr, level="INFO") 
 
-exclude_symbol = os.environ.get("exclude_symbol").split("|")
-position_symbol = os.environ.get("position_symbol").split("|")
+exclude_symbol = os.environ.get("exclude_symbol", "").split("|")
+position_symbol = os.environ.get("position_symbol", "").split("|")
 
 # 热榜选股
 def hot_symbol_task():
