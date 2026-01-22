@@ -96,7 +96,7 @@ def get_agent_res(
     cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"]
 ):
     """
-    描述：获取agent的运行结果，包括dataAgent, reportAgent
+    描述：获取agent的运行结果
     """
     data_agent_res = get_cache(cur_date, symbol, EmAllagents.dataAgent.name)
     report_agent_res = get_cache(cur_date, symbol, EmAllagents.reportAgent.name)

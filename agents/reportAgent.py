@@ -1,3 +1,4 @@
+import os
 from .baseAgent import baseAgent
 from prompt import sys_report_prompt
 from loguru import logger
@@ -8,6 +9,7 @@ class ReportAgent(baseAgent):
     def __init__(self, max_step=10):
         super().__init__()
         self.name = EmAllagents.reportAgent.name
+        self.model = os.environ.get(self.name+"Model", self.model)
         self.max_step = max_step
         self.tools = [stock_research_report_em, stock_research_report_markdown]
         self.tools_regist = [get_func_schema(func) for func in self.tools]

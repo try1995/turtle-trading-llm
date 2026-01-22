@@ -1,3 +1,4 @@
+import os
 from .baseAgent import baseAgent
 from prompt import sys_option_prompt
 from loguru import logger
@@ -8,8 +9,9 @@ from tools import get_func_schema, save_response, stock_news_em, symbol_tavily_s
 class PublicOptionAgent(baseAgent):
     def __init__(self):
         super().__init__()
-        self.tools = [stock_news_em, symbol_tavily_search]
         self.name = EmAllagents.publicOptionAgent.name
+        self.model = os.environ.get(self.name+"Model", self.model)
+        self.tools = [stock_news_em, symbol_tavily_search]
         self.tools_regist = [get_func_schema(func) for func in self.tools]
         self.tools_dict = {fun.__name__:fun for fun in self.tools}
     

@@ -17,6 +17,7 @@ class PlanAgent(baseAgent):
     def __init__(self):
         super().__init__()
         self.name = EmAllagents.planAgent.name
+        self.model = os.environ.get(self.name+"Model", self.model)
         self.agent = [DataAgent, ReportAgent, PublicOptionAgent]
         self.agent_dict:dict[str, baseAgent] = {
             EmAllagents.dataAgent.name:DataAgent(), 
@@ -49,7 +50,7 @@ class PlanAgent(baseAgent):
             },
         ]
         stream = client.chat.completions.create(
-            model="myllm:latest",
+            model=self.model,
             messages=messages,
             stream=True,
         )
@@ -77,7 +78,7 @@ class PlanAgent(baseAgent):
                         }]
                     )
                     stream = client.chat.completions.create(
-                        model="myllm:latest",
+                        model=self.model,
                         messages=__messages,
                         stream=True,
                     )
@@ -112,7 +113,7 @@ class PlanAgent(baseAgent):
             self.agent_res[agent_name] = agent_res
             logger.info("*"*99)
                 
-    
+    @logger.catch
     @save_response
     def run(self, question, human_in_loop=False, use_cache=True):
         logger.info(f"{self.name}：当前执行任务：{question}")

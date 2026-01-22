@@ -14,8 +14,9 @@ class DataAgent(baseAgent):
         self.tools = [stock_zh_a_hist, get_indicators, stock_individual_fund_flow, \
             stock_board_industry_summary_ths, stock_individual_info_em, \
             stock_financial_report_sina, stock_zh_growth_comparison_em, \
-            stock_zh_valuation_comparison_em, stock_zh_scale_comparison_em]
+            stock_zh_valuation_comparison_em, stock_zh_scale_comparison_em, stock_value_em]
         self.name = EmAllagents.dataAgent.name
+        self.model = os.environ.get(self.name+"Model", self.model)
         self.tools_regist = [get_func_schema(func) for func in self.tools]
         self.tools_dict = {fun.__name__:fun for fun in self.tools}
     

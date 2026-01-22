@@ -3,6 +3,14 @@ api_key="sk-"
 model=""
 base_url=""
 
+# 单独给agent设置不同的模型，不设置默认使用model
+# planAgentModel=""
+# dataAgentModel=""
+# reportAgentModel=""
+# publicOptionAgentModel=""
+# investmentAgentModel=""
+
+
 # 以下可选，给自己邮箱发邮件使用
 # 自己邮箱
 smtp_user=""
@@ -13,5 +21,9 @@ smtp_server=""
 # 可以发给自己，多个|分隔
 toaddrs=""
 
+# 需要排除的股票 | 分隔
+exclude_symbol=""
+# 持仓股票
+position_symbol=""
 # 搜索引擎 https://app.tavily.com/home 新人每月1000次
 TAVILY_API_KEY=""

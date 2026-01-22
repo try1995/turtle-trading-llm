@@ -1,5 +1,6 @@
 import os
 import json
+from time import sleep
 from llm import client
 from loguru import logger
 from abc import ABC, abstractmethod
@@ -7,7 +8,9 @@ from datetime import datetime, timedelta
 from markdown import markdown
 from tools.send_email import send_message
 from tools.aktools import get_trade_date
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class baseAgent(ABC):
     def __init__(self):
@@ -21,6 +24,9 @@ class baseAgent(ABC):
         self.backtest_date = ""
         # 股票代码
         self.symbol = ""
+        # model
+        self.model = os.environ.get("model")
+    
     
     @abstractmethod
     def act(self, *args, **kwargs):
@@ -32,7 +38,7 @@ class baseAgent(ABC):
 
     def invork(self, messages, **kwargs):
         final_response_stream = client.chat.completions.create(
-            model="myllm:latest",
+            model=self.model,
             messages=messages,
             stream=True,
             temperature=0.1,
@@ -50,7 +56,7 @@ class baseAgent(ABC):
 
     def invork_with_tools(self, messages):
         response = client.chat.completions.create(
-            model=os.environ.get("model"),
+            model=self.model,
             messages=messages,
             tools=self.tools_regist,
             tool_choice="auto"
@@ -60,16 +66,22 @@ class baseAgent(ABC):
         return response_message
 
     
-    def exec_tools(self, fun, tool_call):
+    def exec_tools(self, fun, tool_call, max_retry=3):
         function_args = json.loads(tool_call.function.arguments)
         logger.info(f"当前执行函数描述：{fun.__doc__.strip().splitlines()[0]}\n\
                     执行函数方法：{tool_call.function.name}\n\
                     执行函数参数：{tool_call.function.arguments}\n")
-        try:
-            response = fun(**function_args)
-        except Exception as e:
-            logger.error(f"方法执行失败:{e}，请检查")
-            response = "未获得"
+        while max_retry:
+            try:
+                response = fun(**function_args)
+            except Exception as e:
+                max_retry -= 1
+                sleep(3)
+                if max_retry == 0:
+                    logger.error(f"方法执行失败:{e}，请检查")
+                    response = "未获得"
+            else:
+                break
         logger.debug(f"执行结果：{response[:500]}...")
         return response
     

@@ -1,3 +1,4 @@
+import os
 from loguru import logger
 from prompt import sys_investment_prompt, sys_investment_prompt
 from .baseAgent import baseAgent
@@ -8,8 +9,9 @@ from tools.all_types import EmAllagents
 class InvestmentAgent(baseAgent):
     def __init__(self):
         super().__init__()
-        self.tools = [stock_value_em, get_agent_res]
+        self.tools = [get_agent_res]
         self.name = EmAllagents.investmentAgent.name
+        self.model = os.environ.get(self.name+"Model", self.model)
         self.tools_regist = [get_func_schema(func) for func in self.tools]
         self.tools_dict = {fun.__name__:fun for fun in self.tools}
     
