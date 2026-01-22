@@ -56,7 +56,7 @@ ng></div>
 
     server = smtplib.SMTP_SSL(smtp_server, 465)
     server.login(user=smtp_user, password=smtp_password)
-    server.set_debuglevel(1)
+    server.set_debuglevel(0)
     # server.sendmail(toaddrs, toaddrs, msg)
     server.send_message(msg)
     server.quit()
