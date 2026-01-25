@@ -43,11 +43,12 @@
 
 ### 盘后自动跑批青龙脚本，跑完自动邮箱发送
 ```
-qionglong.py
+qionglong文件夹
 
+示例：
 在青龙面板-添加订阅，订阅本仓库，关闭自动添加任务和自动删除任务
 添加定时任务
-try1995_turtle-trading-llm/qionglong.py 
+try1995_turtle-trading-llm/qinglong/position_symbol.py
 # 定时规则为每天天盘后三点半
 30 15 * * *
 环境变量里面设置好.env里面的配置信息，额外需要配置好邮箱信息
