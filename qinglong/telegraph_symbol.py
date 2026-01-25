@@ -13,6 +13,7 @@ from json_repair import repair_json
 from agents.xuanguAgent import XunguAgent
 from agents.planAgent import PlanAgent
 from tools.aktools import stock_info_global_cls
+from tools.base_tool import push_server_jio
 from config import cache_dir
 import json
 
@@ -44,6 +45,10 @@ def xuangu_task():
             for data in datas_json:
                 symbol = data["股票代码"]
                 if data["舆情情绪"] == "极度正面" and symbol != "未提及":
+                    try:
+                        push_server_jio(f"极度正面{symbol}出现了！", desp=json.dumps(data, ensure_ascii=False))
+                    except Exception as e:
+                        logger.error(e)
                     plan = PlanAgent()
                     maxretry = 3
                     while maxretry:

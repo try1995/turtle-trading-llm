@@ -69,7 +69,10 @@ def test_stock_zh_valuation_comparison_em():
 def test_stock_zh_scale_comparison_em():
     return stock_zh_scale_comparison_em("000001")
 
-# if __name__ == "__main__":
+def test_server_jio():
+    push_server_jio("这个是标题", "这个是内容")
+
+if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
     # ret = test_stock_research_report_em()
     # ret = test_markitdown()
@@ -122,12 +125,6 @@ def test_stock_zh_scale_comparison_em():
     # print("第五个")
     # print(stock_info_global_ths_df.head(6).to_dict())
     
-    # stock_info_global_cls_df = ak.stock_info_global_cls(symbol="全部")
-    # print("第刘六个")
-    # print(stock_info_global_cls_df.head(6).to_dict())
+    # print(stock_info_global_cls())
+    print(test_server_jio())
     
-
-if __name__ == "__main__":
-    url = stock_info_cjzc_em()
-    content = fetch_url_content(url)
-    print(content)

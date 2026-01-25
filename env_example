@@ -27,3 +27,5 @@ exclude_symbol=""
 position_symbol=""
 # 搜索引擎 https://app.tavily.com/home 新人每月1000次
 TAVILY_API_KEY=""
+# server酱
+SERVER_JIO_KEY=""

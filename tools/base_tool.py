@@ -133,3 +133,11 @@ def fetch_url_content(url):
 
     soup = BeautifulSoup(main_html, "html.parser")
     return soup.get_text(separator="\n", strip=True)
+
+
+def push_server_jio(title, desp):
+    SENDKEY = os.environ.get("SERVER_JIO_KEY","")
+    if SENDKEY:
+        push_url = f'https://sctapi.ftqq.com/{SENDKEY}.send'
+        data = {'title': title, 'desp': desp}
+        requests.post(push_url, data=data)

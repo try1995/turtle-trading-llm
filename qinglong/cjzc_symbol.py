@@ -7,12 +7,14 @@ os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+import json
 from loguru import logger
 from datetime import datetime
 from json_repair import repair_json
 from agents.xuanguAgent import XunguAgent
 from agents.planAgent import PlanAgent
 from tools.aktools import stock_info_cjzc_em, get_trade_date
+from tools.base_tool import push_server_jio
 
 
 def xuangu_task():
@@ -30,6 +32,10 @@ def xuangu_task():
     for data in datas_json:
         symbol = data["股票代码"]
         if data["舆情情绪"] == "极度正面" and symbol != "未提及":
+            try:
+                push_server_jio(f"极度正面{symbol}出现了！", desp=json.dumps(data, ensure_ascii=False))
+            except Exception as e:
+                logger.error(e)
             plan = PlanAgent()
             maxretry = 3
             while maxretry:
