@@ -9,8 +9,9 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from loguru import logger
-from datetime import datetime
+from json_repair import repair_json
 from agents.xuanguAgent import XunguAgent
+from agents.planAgent import PlanAgent
 from tools.aktools import stock_info_global_cls
 from config import cache_dir
 import json
@@ -37,10 +38,27 @@ def xuangu_task():
         if val_content:
             xuangu = XunguAgent()
             md = xuangu.run(json.dumps(val_content))
-            xuangu.send_res_email(md, subject)
+            xuangu.send_res_email(md.split("```<split>```")[0], subject)
+
+            datas_json = repair_json(md, return_objects=True)
+            for data in datas_json:
+                symbol = data["股票代码"]
+                if data["舆情情绪"] == "极度正面" and symbol != "未提及":
+                    plan = PlanAgent()
+                    maxretry = 3
+                    while maxretry:
+                        try:
+                            plan.run(f"详细分析{data["涉及公司名称"]}({symbol})行情情况，提供交易建议", human_in_loop=False)
+                            plan.send_allres_email(subject=f"极度正面{data["涉及公司名称"]}({symbol})分析")
+                            break
+                        except Exception as e:
+                            logger.error(e)
+                            maxretry -= 1
             
             with open(cache_file_path, "w") as f:
                 f.write(telegraph_content_raw)
+        else:
+            logger.info("没有新东西")
 
 
 if __name__ == "__main__":
