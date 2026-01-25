@@ -2,11 +2,14 @@ import os
 import json
 import config
 import inspect
-from datetime import datetime
+import requests
 from typing import get_type_hints
 from markitdown import MarkItDown
 from typing import Annotated
 from .all_types import EmAllagents
+from readability import Document
+from bs4 import BeautifulSoup
+
 
 
 def get_func_schema(func):
@@ -115,3 +118,18 @@ def get_all_agent_res(symbol: Annotated[str, "股票代码，e.g. 000001"],
     invest_agent_res = get_cache(cur_date, symbol, EmAllagents.investmentAgent.name)
     
     return invest_agent_res + "\n\n*参考*\n\n" + res
+
+
+def fetch_url_content(url):
+    """
+    # 描述：爬取url的内容
+    """
+    HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+}
+    html = requests.get(url, headers=HEADERS, timeout=10).text
+    doc = Document(html)
+    main_html = doc.summary(html_partial=True)
+
+    soup = BeautifulSoup(main_html, "html.parser")
+    return soup.get_text(separator="\n", strip=True)

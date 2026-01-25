@@ -1,15 +1,12 @@
-# 行业热点选择板块，板块里面筛选股票
+# 每日交易热榜选股，可以每周跑，也可以每天跑
 import os
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import akshare as ak
 import pandas as pd
-# 关注排行榜
-# stock_hot_follow_xq_df = ak.stock_hot_follow_xq(symbol="最热门")
-# 讨论排行榜
-# stock_hot_tweet_xq_df = ak.stock_hot_tweet_xq(symbol="最热门")
-# 交易排行榜
-
-# 飙升榜-A股
-# stock_hot_up_em_df = ak.stock_hot_up_em()
 import pandas as pd
 from tools.aktools import get_trade_date
 from datetime import datetime
@@ -61,27 +58,12 @@ def hot_symbol_task():
                 logger.error(e)
                 maxretry -= 1
 
-# 持仓股票
-def position_symbol_task():
-    for symbol in position_symbol:
-        plan = PlanAgent()
-        plan.set_symbol(symbol)
-        maxretry = 3
-        while maxretry:
-            try:
-                plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
-                plan.send_allres_email(subject=f"持仓{symbol}分析")
-                break
-            except Exception as e:
-                logger.error(e)
-                maxretry -= 1
 
 def daily_task():
     now = datetime.now().strftime("%Y%m%d")
     if now not in get_trade_date():
         logger.info("未在交易日，跳过")
         return
-    position_symbol_task()
     hot_symbol_task()
     
     

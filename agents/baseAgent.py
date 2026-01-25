@@ -160,5 +160,10 @@ class baseAgent(ABC):
     
     @logger.catch
     def send_res_email(self, md, subject):
-        html = markdown(md)
+        html = markdown(md, 
+        extensions=[
+            'markdown.extensions.tables',
+            'markdown.extensions.toc',
+            'markdown.extensions.codehilite'
+        ])
         send_message(toaddrs=os.environ.get("toaddrs").split("|"), subject=subject, content=html)

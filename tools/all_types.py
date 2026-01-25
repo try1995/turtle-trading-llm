@@ -5,6 +5,7 @@ class EmAllagents(Enum):
     
     dataAgent = 0
     reportAgent = 1
-    publicOptionAgent = 4
+    publicOptionAgent = 2
     investmentAgent = 3
+    xuanguAgent=4
 

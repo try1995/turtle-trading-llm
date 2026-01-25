@@ -6,7 +6,7 @@ import talib as ta
 from datetime import datetime, timedelta
 import akshare as ak
 import pandas as pd
-from .base_tool import markdownpdf
+from .base_tool import markdownpdf, fetch_url_content
 from loguru import logger
 from typing import get_type_hints, Optional, Any, List, Dict, Annotated
 
@@ -473,3 +473,11 @@ def stock_zh_scale_comparison_em(
     stock_zh_scale_comparison_em_df = ak.stock_zh_scale_comparison_em(symbol=get_market(symbol).upper()+symbol)
     record = stock_zh_scale_comparison_em_df.to_dict("records")
     return json.dumps(record, ensure_ascii=False)
+
+# -----------------------------------快讯------------------------------------------------
+def stock_info_cjzc_em():
+    # 方财富财经早餐，只取每天的一条资讯
+    stock_info_cjzc_em_df = ak.stock_info_cjzc_em()
+    url = stock_info_cjzc_em_df.to_dict("records")[0]["链接"]
+    content = fetch_url_content(url)
+    return content

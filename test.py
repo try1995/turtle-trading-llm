@@ -69,7 +69,7 @@ def test_stock_zh_valuation_comparison_em():
 def test_stock_zh_scale_comparison_em():
     return stock_zh_scale_comparison_em("000001")
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
     # ret = test_stock_research_report_em()
     # ret = test_markitdown()
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # ret = test_stock_value_em()
     # ret = test_stock_individual_info_em()
     # ret = test_stock_board_industry_summary_ths()
-    ret = test_stock_news_em()
+    # ret = test_stock_news_em()
     # print(ret)
     # import akshare as ak
 
@@ -101,4 +101,33 @@ if __name__ == "__main__":
 
     # ret = test_stock_zh_growth_comparison_em()
     # ret = test_stock_zh_valuation_comparison_em()
-    print(ret)
+    # import akshare as ak
+
+    # stock_info_cjzc_em_df = ak.stock_info_cjzc_em()
+    # print("第一个")
+    # print(stock_info_cjzc_em_df.head(1).to_dict("records"))
+    
+    
+    # stock_info_global_em_df = ak.stock_info_global_em()
+    # print("第二个")
+    # print(stock_info_global_em_df.head(6).to_dict())
+    # stock_info_global_sina_df = ak.stock_info_global_sina()
+    # print("第三个")
+    # print(stock_info_global_sina_df.head(6).to_dict())
+    # stock_info_global_futu_df = ak.stock_info_global_futu()
+    # print("第四个")
+    # print(stock_info_global_futu_df.head(6).to_dict())
+
+    # stock_info_global_ths_df = ak.stock_info_global_ths()
+    # print("第五个")
+    # print(stock_info_global_ths_df.head(6).to_dict())
+    
+    # stock_info_global_cls_df = ak.stock_info_global_cls(symbol="全部")
+    # print("第刘六个")
+    # print(stock_info_global_cls_df.head(6).to_dict())
+    
+
+if __name__ == "__main__":
+    url = stock_info_cjzc_em()
+    content = fetch_url_content(url)
+    print(content)
