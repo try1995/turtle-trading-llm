@@ -33,5 +33,4 @@ def daily_task():
 
 
 if __name__ == "__main__":
-    # daily_task()
-    xuangu_task()
+    daily_task()
