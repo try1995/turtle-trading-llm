@@ -1,5 +1,7 @@
 # 每日交易热榜选股，可以每周跑，也可以每天跑
 import os
+import sys
+
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 if project_root not in sys.path:
@@ -14,7 +16,6 @@ from datetime import datetime
 
 from agents.planAgent import PlanAgent
 from loguru import logger
-import sys
 
 logger.remove()                                     # 去掉默认全局配置
 logger.add(sys.stderr, level="INFO") 
@@ -67,7 +68,5 @@ def daily_task():
     hot_symbol_task()
     
     
-
-
 if __name__ == "__main__":
     daily_task()

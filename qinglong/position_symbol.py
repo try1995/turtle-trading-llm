@@ -1,5 +1,7 @@
 # 每日持仓分析, 建议设置每天盘后跑
 import os
+import sys
+
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 if project_root not in sys.path:
@@ -14,7 +16,6 @@ from datetime import datetime
 
 from agents.planAgent import PlanAgent
 from loguru import logger
-import sys
 
 logger.remove()                                     # 去掉默认全局配置
 logger.add(sys.stderr, level="INFO") 
@@ -42,9 +43,7 @@ def daily_task():
     if now not in get_trade_date():
         logger.info("未在交易日，跳过")
         return
-    position_symbol_task()
-    
-    
+    position_symbol_task() 
 
 
 if __name__ == "__main__":

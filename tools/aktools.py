@@ -480,4 +480,4 @@ def stock_info_cjzc_em():
     stock_info_cjzc_em_df = ak.stock_info_cjzc_em()
     url = stock_info_cjzc_em_df.to_dict("records")[0]["链接"]
     content = fetch_url_content(url)
-    return content
+    return url, content
