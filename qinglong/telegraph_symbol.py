@@ -34,12 +34,13 @@ def xuangu_task():
                     val_content.append(value)
         else:
             val_content = telegraph_content
-        xuangu = XunguAgent()
-        md = xuangu.run(json.dumps(val_content))
-        xuangu.send_res_email(md, subject)
-        
-        with open(cache_file_path, "w") as f:
-            f.write(telegraph_content_raw)
+        if val_content:
+            xuangu = XunguAgent()
+            md = xuangu.run(json.dumps(val_content))
+            xuangu.send_res_email(md, subject)
+            
+            with open(cache_file_path, "w") as f:
+                f.write(telegraph_content_raw)
 
 
 if __name__ == "__main__":

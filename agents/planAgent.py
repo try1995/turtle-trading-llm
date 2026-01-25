@@ -115,9 +115,11 @@ class PlanAgent(baseAgent):
                 
     @logger.catch
     @save_response
-    def run(self, question, human_in_loop=False, use_cache=True):
+    def run(self, question, human_in_loop=False, use_cache=True, symbol=""):
         logger.info(f"{self.name}：当前执行任务：{question}")
         self.use_cache = use_cache
+        if symbol:
+            self.set_symbol(symbol)
         if self.use_cache:
             agent_res = self.get_cache_res(self.symbol, self.name)
             if agent_res == "无结果":
