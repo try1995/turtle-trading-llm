@@ -481,3 +481,9 @@ def stock_info_cjzc_em():
     url = stock_info_cjzc_em_df.to_dict("records")[0]["链接"]
     content = fetch_url_content(url)
     return url, content
+
+def stock_info_global_cls():
+    # 财联社-电报-重要
+    stock_info_global_cls_df = ak.stock_info_global_cls(symbol="重点").drop(columns=["发布日期","发布时间"])
+    record = stock_info_global_cls_df.to_dict("records")
+    return json.dumps(record, ensure_ascii=False)
