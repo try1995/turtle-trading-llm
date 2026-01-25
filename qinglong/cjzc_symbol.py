@@ -43,10 +43,10 @@ def xuangu_task():
                             
 
 def daily_task():
-    # now = datetime.now().strftime("%Y%m%d")
-    # if now not in get_trade_date():
-    #     logger.info("未在交易日，跳过")
-    #     return
+    now = datetime.now().strftime("%Y%m%d")
+    if now not in get_trade_date():
+        logger.info("未在交易日，跳过")
+        return
     xuangu_task()
 
 
