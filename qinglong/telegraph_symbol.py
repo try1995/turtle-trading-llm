@@ -34,6 +34,7 @@ def xuangu_task():
             for value in telegraph_content:
                 if value not in cache_data:
                     val_content.append(value)
+            telegraph_content = telegraph_content + cache_data
         else:
             val_content = telegraph_content
         if val_content:
@@ -61,7 +62,7 @@ def xuangu_task():
                             maxretry -= 1
             
             with open(cache_file_path, "w") as f:
-                f.write(telegraph_content_raw)
+                f.write(json.dumps(telegraph_content, ensure_ascii=False, indent=4))
         else:
             logger.info("没有新东西")
 
