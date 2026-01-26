@@ -9,6 +9,7 @@ base_url=""
 # reportAgentModel=""
 # publicOptionAgentModel=""
 # investmentAgentModel=""
+# xuanguAgentModel=""
 
 
 # 以下可选，给自己邮箱发邮件使用

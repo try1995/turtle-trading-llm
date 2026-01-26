@@ -1,6 +1,6 @@
 import os
 from .baseAgent import baseAgent
-from prompt import sys_option_prompt
+from prompt import sys_option_prompt, sys_tool_prompt
 from loguru import logger
 from tools.all_types import EmAllagents
 from tools import get_func_schema, save_response, stock_news_em, symbol_tavily_search
@@ -24,7 +24,7 @@ class PublicOptionAgent(baseAgent):
     def run(self, question):
         logger.info(f"{self.name}：当前执行任务：{question}")
         messages = [
-            {"role": "system", "content": sys_option_prompt},
+            {"role": "system", "content": sys_tool_prompt},
             {
                 "role": "user",
                 "content": self.get_date_desc()[0]

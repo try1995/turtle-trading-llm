@@ -126,5 +126,5 @@ if __name__ == "__main__":
     # print(stock_info_global_ths_df.head(6).to_dict())
     
     # print(stock_info_global_cls())
-    print(test_server_jio())
+    print(send_text("测试"))
     

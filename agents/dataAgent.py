@@ -1,7 +1,7 @@
 import json
 from llm import client
 from loguru import logger
-from prompt import sys_data_prompt
+from prompt import sys_data_prompt, sys_tool_prompt
 from .baseAgent import baseAgent
 from tools.all_types import EmAllagents
 from tools import *
@@ -34,7 +34,7 @@ class DataAgent(baseAgent):
         for task in sub_task:
             logger.info(f"{self.name}：当前执行任务：{self.symbol} {task}")
             messages = [
-                {"role": "system", "content": sys_data_prompt},
+                {"role": "system", "content": sys_tool_prompt},
                 {
                     "role": "user",
                     "content": self.get_date_desc()[0]

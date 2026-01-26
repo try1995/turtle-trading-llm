@@ -1,6 +1,6 @@
 import os
 from .baseAgent import baseAgent
-from prompt import sys_report_prompt
+from prompt import sys_report_prompt, sys_tool_prompt
 from loguru import logger
 from tools.all_types import EmAllagents
 from tools import stock_research_report_em, stock_research_report_markdown, get_func_schema, save_response
@@ -24,7 +24,7 @@ class ReportAgent(baseAgent):
     def run(self, question):
         logger.info(f"{self.name}：当前执行任务：{question}")
         messages = [
-            {"role": "system", "content": sys_report_prompt},
+            {"role": "system", "content": sys_tool_prompt},
             {
                 "role": "user",
                 "content": self.get_date_desc()[0]
