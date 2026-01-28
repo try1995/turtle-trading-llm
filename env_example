@@ -4,6 +4,7 @@ model=""
 base_url=""
 
 # 单独给agent设置不同的模型，不设置默认使用model
+# toolCallModel=""
 # planAgentModel=""
 # dataAgentModel=""
 # reportAgentModel=""

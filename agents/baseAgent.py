@@ -26,6 +26,7 @@ class baseAgent(ABC):
         self.symbol = ""
         # model
         self.model = os.environ.get("model")
+        self.tool_call_mdoel = os.environ.get("toolCallModel", self.model)
     
     
     @abstractmethod
@@ -56,7 +57,7 @@ class baseAgent(ABC):
 
     def invork_with_tools(self, messages):
         response = client.chat.completions.create(
-            model=self.model,
+            model=self.tool_call_mdoel,
             messages=messages,
             tools=self.tools_regist,
             tool_choice="auto"
