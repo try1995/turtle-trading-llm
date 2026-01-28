@@ -40,8 +40,8 @@ def xuangu_task():
             maxretry = 3
             while maxretry:
                 try:
-                    plan.run(f"详细分析{data["涉及公司名称"]}({symbol})行情情况，提供交易建议", human_in_loop=False)
-                    plan.send_allres_email(subject=f"极度正面{data["涉及公司名称"]}({symbol})分析")
+                    plan.run(f"详细分析{data['涉及公司名称']}({symbol})行情情况，提供交易建议", human_in_loop=False)
+                    plan.send_allres_email(subject=f"极度正面{data['涉及公司名称']}({symbol})分析")
                     break
                 except Exception as e:
                     logger.error(e)
