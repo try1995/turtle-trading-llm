@@ -302,6 +302,29 @@ def stock_individual_info_em(
     return json.dumps(record, ensure_ascii=False)
 
 
+def stock_individual_basic_info_xq(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+):
+    """
+    描述: 查询股票信息
+
+    输出参数
+
+    名称            类型      描述
+    最新            float64   当日收盘价，单位：元
+    股票代码        object    -
+    股票简称        object    -
+    总股本          float64   单位：股
+    流通股          float64   流通股本
+    总市值          float64   单位：元
+    流通市值        float64   单位：元
+    行业            object    -
+    上市时间        object    数据日期
+    """
+    stock_individual_info_em_df = ak.stock_individual_basic_info_xq(get_market(symbol).upper()+symbol)
+    record = stock_individual_info_em_df.set_index('item')['value'].to_dict()
+    return json.dumps(record, ensure_ascii=False)
+
 def stock_news_em(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
 ):
