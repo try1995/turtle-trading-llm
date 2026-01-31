@@ -14,7 +14,6 @@ from agents.xuanguAgent import XunguAgent
 from agents.planAgent import PlanAgent
 from tools.aktools import stock_info_global_cls
 from tools.base_tool import push_server_jio
-from config import cache_dir
 import json
 from tools.sql_utils import *
 
@@ -29,7 +28,7 @@ def telegraph_task():
     if records and len(records) >= max_notify_size:
         all_news = []
         for record in records:
-            all_news.append(f"新闻id:{record["StockNews"].id}"+record["StockNews"].content)
+            all_news.append(f"新闻id:{record['StockNews'].id}"+record['StockNews'].content)
         xuangu = XunguAgent()
         md = xuangu.run("\n\n".join(all_news))
         xuangu.send_res_email(md.split("```<split>```")[0], subject)
