@@ -8,14 +8,15 @@ os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+import json
+from datetime import datetime
 from loguru import logger
 from json_repair import repair_json
 from agents.xuanguAgent import XunguAgent
 from agents.planAgent import PlanAgent
-from tools.aktools import stock_info_global_cls
 from tools.base_tool import push_server_jio
-import json
 from tools.sql_utils import *
+from tools.aktools import get_trade_date
 
 max_notify_size = int(os.environ.get("max_notify_size", "5"))
 position_symbol = os.environ.get("position_symbol", "").split("|")
@@ -83,6 +84,10 @@ def position_task():
         logger.info("没有新东西")
 
 def main():
+    now = datetime.now().strftime("%Y%m%d")
+    if now not in get_trade_date():
+        logger.info("未在交易日，发送最大窗口翻倍")
+    max_notify_size = 2*max_notify_size
     telegraph_task()
     position_task()
 
