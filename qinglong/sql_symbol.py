@@ -37,7 +37,7 @@ def telegraph_task():
         datas_json = repair_json(md, return_objects=True)
         for data in datas_json:
             id = data.pop("id")
-            data["notify"] = True
+            data["notifyed"] = True
             smt = update(StockNews).where(StockNews.id == id).values(
                 **data
             )
