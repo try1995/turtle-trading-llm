@@ -18,7 +18,34 @@ import json
 from tools.sql_utils import *
 
 max_notify_size = int(os.environ.get("max_notify_size", "5"))
+position_symbol = os.environ.get("position_symbol", "").split("|")
 
+def analyse_symbol(md):
+    datas_json = repair_json(md, return_objects=True)
+    for data in datas_json:
+        id = data.pop("id")
+        data["notifyed"] = True
+        smt = update(StockNews).where(StockNews.id == id).values(
+            **data
+        )
+        exec_record(smt)
+        symbol = data["symbol"]
+        if data["sentiment"] == "极度正面" and symbol != "未提及":
+            try:
+                push_server_jio(f"极度正面{symbol}出现了！", desp=json.dumps(data, ensure_ascii=False))
+            except Exception as e:
+                logger.error(e)
+            plan = PlanAgent()
+            maxretry = 3
+            while maxretry:
+                try:
+                    plan.run(f"详细分析{data['company_name']}({symbol})行情情况，提供交易建议", human_in_loop=False)
+                    plan.send_allres_email(subject=f"极度正面{data['company_name']}({symbol})分析")
+                    break
+                except Exception as e:
+                    logger.error(e)
+                    maxretry -= 1
+    pass
 
 def telegraph_task():
     subject = "财联社-电报-重要-间隔推送"
@@ -32,35 +59,32 @@ def telegraph_task():
         xuangu = XunguAgent()
         md = xuangu.run("\n\n".join(all_news))
         xuangu.send_res_email(md.split("```<split>```")[0], subject)
-
-        datas_json = repair_json(md, return_objects=True)
-        for data in datas_json:
-            id = data.pop("id")
-            data["notifyed"] = True
-            smt = update(StockNews).where(StockNews.id == id).values(
-                **data
-            )
-            exec_record(smt)
-            symbol = data["symbol"]
-            if data["sentiment"] == "极度正面" and symbol != "未提及":
-                try:
-                    push_server_jio(f"极度正面{symbol}出现了！", desp=json.dumps(records, ensure_ascii=False))
-                except Exception as e:
-                    logger.error(e)
-                plan = PlanAgent()
-                maxretry = 3
-                while maxretry:
-                    try:
-                        plan.run(f"详细分析{records['涉及公司名称']}({symbol})行情情况，提供交易建议", human_in_loop=False)
-                        plan.send_allres_email(subject=f"极度正面{records['涉及公司名称']}({symbol})分析")
-                        break
-                    except Exception as e:
-                        logger.error(e)
-                        maxretry -= 1
-                
+        
+        analyse_symbol(md)
     else:
         logger.info("没有新东西")
 
 
-if __name__ == "__main__":
+def position_task():
+    subject = "持仓新闻-实时推送"
+    stmt = select(StockNews).where(StockNews.symbol.in_(position_symbol))
+
+    records = find_record(stmt)
+    if records:
+        all_news = []
+        for record in records:
+            all_news.append(f"新闻id:{record['StockNews'].id}"+record['StockNews'].content)
+        xuangu = XunguAgent()
+        md = xuangu.run("\n\n".join(all_news))
+        xuangu.send_res_email(md.split("```<split>```")[0], subject)
+        
+        analyse_symbol(md)
+    else:
+        logger.info("没有新东西")
+
+def main():
     telegraph_task()
+    position_task()
+
+if __name__ == "__main__":
+    main()
