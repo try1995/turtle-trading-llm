@@ -26,6 +26,8 @@ def analyse_symbol(md):
     for data in datas_json:
         id = data.pop("id")
         data["notifyed"] = True
+        if "span" in data["sentiment"]:
+            data["sentiment"] = data["sentiment"][data["sentiment"].find('>')+1:data["sentiment"].rfind('<')] 
         smt = update(StockNews).where(StockNews.id == id).values(
             **data
         )
@@ -68,7 +70,8 @@ def telegraph_task():
 
 def position_task():
     subject = "持仓新闻-实时推送"
-    stmt = select(StockNews).where(StockNews.symbol.in_(position_symbol))
+    conditions = [StockNews.symbol.startswith(prefix) for prefix in position_symbol]
+    stmt = select(StockNews).where(or_(*conditions), StockNews.notifyed==False)
 
     records = find_record(stmt)
     if records:
@@ -87,7 +90,8 @@ def main():
     now = datetime.now().strftime("%Y%m%d")
     if now not in get_trade_date():
         logger.info("未在交易日，发送最大窗口翻倍")
-    max_notify_size = 2*max_notify_size
+    global max_notify_size
+    max_notify_size += max_notify_size
     telegraph_task()
     position_task()
 

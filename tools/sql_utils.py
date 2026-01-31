@@ -2,7 +2,7 @@ from loguru import logger
 from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean
 from sqlalchemy.sql import func
 from contextlib import contextmanager
-from sqlalchemy import create_engine, select, update
+from sqlalchemy import create_engine, select, update, or_
 from sqlalchemy.exc import IntegrityError 
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 import pandas as pd
