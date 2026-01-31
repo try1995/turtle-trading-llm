@@ -2,7 +2,8 @@ from loguru import logger
 from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean
 from sqlalchemy.sql import func
 from contextlib import contextmanager
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select, update
+from sqlalchemy.exc import IntegrityError 
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 import pandas as pd
 
@@ -43,7 +44,7 @@ class StockNews(Base):
     
     # 标的关联
     company_name = Column(String(300), nullable=True, comment="涉及公司名称")
-    stock_code = Column(String(100), nullable=True, comment="股票代码")
+    symbol = Column(String(16), nullable=True, comment="股票代码")
     
     # 风险维度
     risk_focus = Column(Text, nullable=True, comment="风险与关注点")
@@ -77,22 +78,22 @@ def find_record(smt):
     with Session(engine) as session:
         # 查询所有
         result = session.execute(smt)
-        df = pd.DataFrame(result.fetchall(), columns=result.keys())
-        return df
+        records = result.mappings().all()  # 返回 [dict, dict, ...]
+        return records
 
 # 增
 def add_record(data):
-    if not isinstance(data, list):
-        data = [data]
-    with Session(engine) as session:
-        # 单条添加，防止出错整个回滚
-        for _data in data:
-            try:
-                session.add(_data)
-                session.commit()
-            except Exception as e:
-                logger.error(e)
-            
+    try:
+        with Session(engine) as session:
+            # 单条添加，防止出错整个回滚
+            session.add(data)
+            session.commit()
+            logger.info("插入一条数据")
+    except IntegrityError as _:
+        pass
+    except Exception as e:
+        logger.error(e)
+        
 # 删改
 def exec_record(smt):
     with Session(engine) as session:

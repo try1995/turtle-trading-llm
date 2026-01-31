@@ -1,0 +1,67 @@
+# 提取数据库中数据分析
+
+import os
+import sys
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from loguru import logger
+from json_repair import repair_json
+from agents.xuanguAgent import XunguAgent
+from agents.planAgent import PlanAgent
+from tools.aktools import stock_info_global_cls
+from tools.base_tool import push_server_jio
+from config import cache_dir
+import json
+from tools.sql_utils import *
+
+max_notify_size = int(os.environ.get("max_notify_size", "5"))
+
+
+def telegraph_task():
+    subject = "财联社-电报-重要-间隔推送"
+    smt = select(StockNews).where(StockNews.notifyed==False , StockNews.source=="财联社")
+    records = find_record(smt)
+
+    if records and len(records) >= max_notify_size:
+        all_news = []
+        for record in records:
+            all_news.append(f"新闻id:{record["StockNews"].id}"+record["StockNews"].content)
+        xuangu = XunguAgent()
+        md = xuangu.run("\n\n".join(all_news))
+        xuangu.send_res_email(md.split("```<split>```")[0], subject)
+
+        datas_json = repair_json(md, return_objects=True)
+        for data in datas_json:
+            id = data.pop("id")
+            data["notify"] = True
+            smt = update(StockNews).where(StockNews.id == id).values(
+                **data
+            )
+            exec_record(smt)
+            symbol = data["symbol"]
+            if data["sentiment"] == "极度正面" and symbol != "未提及":
+                try:
+                    push_server_jio(f"极度正面{symbol}出现了！", desp=json.dumps(records, ensure_ascii=False))
+                except Exception as e:
+                    logger.error(e)
+                plan = PlanAgent()
+                maxretry = 3
+                while maxretry:
+                    try:
+                        plan.run(f"详细分析{records['涉及公司名称']}({symbol})行情情况，提供交易建议", human_in_loop=False)
+                        plan.send_allres_email(subject=f"极度正面{records['涉及公司名称']}({symbol})分析")
+                        break
+                    except Exception as e:
+                        logger.error(e)
+                        maxretry -= 1
+                
+    else:
+        logger.info("没有新东西")
+
+
+if __name__ == "__main__":
+    telegraph_task()
