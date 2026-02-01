@@ -125,6 +125,6 @@ if __name__ == "__main__":
     # print("第五个")
     # print(stock_info_global_ths_df.head(6).to_dict())
     
-    # print(stock_info_global_cls())
-    print(send_text("测试"))
+    print(stock_info_global_cls())
+    # print(send_text("测试"))
     

@@ -31,3 +31,5 @@ position_symbol=""
 TAVILY_API_KEY=""
 # server酱
 SERVER_JIO_KEY=""
+# https://www.zhituapi.com/hsstockapi.html
+ZT_TOKEN=""

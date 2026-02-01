@@ -44,7 +44,7 @@ class StockNews(Base):
     
     # 标的关联
     company_name = Column(String(300), nullable=True, comment="涉及公司名称")
-    symbol = Column(String(16), nullable=True, comment="股票代码")
+    symbol = Column(String(300), nullable=True, comment="股票代码")
     
     # 风险维度
     risk_focus = Column(Text, nullable=True, comment="风险与关注点")
@@ -98,5 +98,8 @@ def add_record(data):
 def exec_record(smt):
     with Session(engine) as session:
         # 查询所有
-        session.execute(smt)
-        session.commit()
+        try:
+            session.execute(smt)
+            session.commit()
+        except Exception as e:
+            logger.error(e)
