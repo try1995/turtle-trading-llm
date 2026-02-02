@@ -1,4 +1,5 @@
 import os
+import config
 import requests
 import tempfile
 import json
@@ -235,10 +236,16 @@ def stock_individual_fund_flow(
     return json.dumps(record, ensure_ascii=False)
 
 
-def get_trade_date(start_date="20201212", end_date="20901212"):
-    # 交易日历
-    trade_df = ak.tool_trade_date_hist_sina()
-    trade_df["trade_date"] = pd.to_datetime(trade_df["trade_date"], errors='coerce')
+def get_trade_date(start_date="20201212", end_date="20901212", use_cache=True):
+    # 交易日历,这个接口最好缓存，否则频繁报错 qinglong/update_trade_date.py
+    if use_cache:
+        with open(os.path.join(config.cache_dir, "tradeData"), "r") as f:
+            data = json.load(f)
+        trade_df = pd.DataFrame({'date': data})
+        trade_df['trade_date'] = pd.to_datetime(trade_df['date'], format='%Y%m%d', errors='coerce')
+    else:
+        trade_df = ak.tool_trade_date_hist_sina()
+        trade_df["trade_date"] = pd.to_datetime(trade_df["trade_date"], errors='coerce')
     ret = trade_df[(trade_df["trade_date"] >= start_date) & (trade_df["trade_date"] <= end_date)]
     return ret["trade_date"].dt.strftime('%Y%m%d').to_list()
 

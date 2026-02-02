@@ -77,7 +77,7 @@ if __name__ == "__main__":
     # ret = test_stock_research_report_em()
     # ret = test_markitdown()
     # ret = test_get_indicators()
-    # ret = get_trade_date()
+    print(get_trade_date(end_date="20260202"))
     # ret = get_stock_info()
     # ret = test_stock_yjbb_em_df()
     # ret = test_stock_individual_fund_flow()
