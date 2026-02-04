@@ -36,8 +36,12 @@ def hot_symbol_task():
     
     if not df.empty:
         plan = PlanAgent()
-        plan.send_res_email(df.to_html(index=False, justify="center"), subject="每日热榜", to_html=False)
-                
+        email_df = df.copy()
+        email_df['涨跌幅'] = email_df['涨跌幅'].apply(
+            lambda x: f'<span style="color: green;">{x}</span>' if x < 0 else f'<span style="color: red;">{x}</span>'
+        )
+        plan.send_res_email(email_df.to_markdown(index=False), subject="每日热榜", table=True)
+    
     for _, item in df.iterrows():
         symbol = item.股票代码[2:]
         # stock_info = ak.stock_individual_info_em(symbol)

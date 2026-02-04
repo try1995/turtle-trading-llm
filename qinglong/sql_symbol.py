@@ -21,13 +21,33 @@ from tools.aktools import get_trade_date
 max_notify_size = int(os.environ.get("max_notify_size", "5"))
 position_symbol = os.environ.get("position_symbol", "").split("|")
 
-def analyse_symbol(md):
-    datas_json = repair_json(md, return_objects=True)
-    for data in datas_json:
+color_map = {
+    "极度负面":"darkseagreen",
+    "极度正面":"darkred",
+    "正面":"red",
+    "负面":"green"
+}
+
+col_map = {
+    '舆情情绪': 'sentiment',
+    '情绪判断依据': 'sentiment_basis',
+    '影响行业/板块': 'affected_industry',
+    '行业影响方向': 'impact_direction',
+    '影响逻辑说明': 'impact_logic',
+    '公司名称': 'company_name',
+    '股票代码': 'symbol',
+    '风险与关注点': 'risk_focus',
+    '新闻id': 'id'
+}
+
+
+def xuangu_process_news_after(df):
+    del df["舆情摘要"]
+    df = df.rename(columns=col_map)
+    data_dict = df.to_dict("records")
+    for data in data_dict:
         id = data.pop("id")
         data["notifyed"] = True
-        if "span" in data["sentiment"]:
-            data["sentiment"] = data["sentiment"][data["sentiment"].find('>')+1:data["sentiment"].rfind('<')] 
         smt = update(StockNews).where(StockNews.id == id).values(
             **data
         )
@@ -35,7 +55,9 @@ def analyse_symbol(md):
         symbol = data["symbol"]
         if data["sentiment"] == "极度正面" and symbol != "未提及":
             try:
-                push_server_jio(f"极度正面{symbol}出现了！", desp=json.dumps(data, ensure_ascii=False))
+                smt = select(StockNews).where(StockNews.id == id)
+                records = find_record(smt)
+                push_server_jio(f"极度正面{symbol}出现了！", desp=records[0]["StockNews"].__repr__())
             except Exception as e:
                 logger.error(e)
             plan = PlanAgent()
@@ -48,7 +70,23 @@ def analyse_symbol(md):
                 except Exception as e:
                     logger.error(e)
                     maxretry -= 1
-    pass
+
+
+def xuangu_process_news_before(all_news, subject):
+    xuangu = XunguAgent()
+    md = xuangu.run("\n\n".join(all_news))
+    json_data = repair_json(md, return_objects=True)
+    df = pd.DataFrame(json_data)
+    
+    email_df = df.copy()
+    email_df['舆情情绪'] = email_df['舆情情绪'].apply(
+        lambda x: f'<span style="color: {color_map.get(x, "black")};">{x}</span>'
+    )
+    del email_df["id"]
+    
+    xuangu.send_res_email(email_df.to_markdown(index=False), subject, table=True)
+    
+    return df
 
 def telegraph_task():
     subject = "财联社-电报-重要-间隔推送"
@@ -59,11 +97,9 @@ def telegraph_task():
         all_news = []
         for record in records:
             all_news.append(f"新闻id:{record['StockNews'].id}"+record['StockNews'].content)
-        xuangu = XunguAgent()
-        md = xuangu.run("\n\n".join(all_news))
-        xuangu.send_res_email(md.split("```<split>```")[0], subject)
-        
-        analyse_symbol(md)
+
+        df = xuangu_process_news_before(all_news, subject)
+        xuangu_process_news_after(df)
     else:
         logger.info("没有新东西")
 
@@ -78,11 +114,9 @@ def position_task():
         all_news = []
         for record in records:
             all_news.append(f"新闻id:{record['StockNews'].id}"+record['StockNews'].content)
-        xuangu = XunguAgent()
-        md = xuangu.run("\n\n".join(all_news))
-        xuangu.send_res_email(md.split("```<split>```")[0], subject)
-        
-        analyse_symbol(md)
+
+        df = xuangu_process_news_before(all_news, subject)
+        xuangu_process_news_after(df)
     else:
         logger.info("没有新东西")
 

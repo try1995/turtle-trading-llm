@@ -167,14 +167,19 @@ class baseAgent(ABC):
             return f"当前时间是：{now.strftime('%Y%m%d')}，星期{xinqi}", now.strftime("%Y%m%d")
     
     @logger.catch
-    def send_res_email(self, md, subject, to_html=True):
-        if to_html:
-            html = markdown(md, 
+    def send_res_email(self, md, subject, table=False):
+        css = """
+            <style>
+            table { border-collapse: collapse; }
+            th, td { border: 1px solid #555; padding: 4px 8px; }
+            </style>
+            """
+        html = markdown(md, 
             extensions=[
                 'markdown.extensions.tables',
                 'markdown.extensions.toc',
                 'markdown.extensions.codehilite'
             ])
-        else:
-            html = md
+        if table:
+            html += css
         send_message(toaddrs=os.environ.get("toaddrs").split("|"), subject=subject, content=html)

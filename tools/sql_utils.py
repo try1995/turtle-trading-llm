@@ -54,6 +54,11 @@ class StockNews(Base):
     
     created_at = Column(DateTime, server_default=func.now(), comment="创建时间")
     updated_at = Column(DateTime, onupdate=func.now(), comment="更新时间")
+
+    def __repr__(cls):
+        return f"{cls.title}\n\n{cls.content}\n\n{cls.sentiment}\n{cls.sentiment_basis}\n\n\
+            {cls.affected_industry}\n{cls.impact_direction}\n{cls.impact_logic}\n\n{cls.company_name}\n{cls.symbol}\n\n{cls.risk_focus}"
+        
     
 # 创建表（同步）
 Base.metadata.create_all(bind=engine)
