@@ -1,6 +1,7 @@
 import os
 import json
 from time import sleep
+from json_repair import repair_json
 from llm import client
 from loguru import logger
 from abc import ABC, abstractmethod
@@ -68,7 +69,13 @@ class baseAgent(ABC):
 
     
     def exec_tools(self, fun, tool_call, max_retry=3):
-        function_args = json.loads(tool_call.function.arguments)
+        try:
+            function_args = json.loads(tool_call.function.arguments)
+        except Exception as e:
+            logger.error(e)
+            logger.debug(tool_call.function.arguments)
+            logger.info("执行repair_json")
+            function_args = repair_json(function_args, return_objects=True)
         logger.info(f"当前执行函数描述：{fun.__doc__.strip().splitlines()[0]}\n\
                     执行函数方法：{tool_call.function.name}\n\
                     执行函数参数：{tool_call.function.arguments}\n")
@@ -160,11 +167,14 @@ class baseAgent(ABC):
             return f"当前时间是：{now.strftime('%Y%m%d')}，星期{xinqi}", now.strftime("%Y%m%d")
     
     @logger.catch
-    def send_res_email(self, md, subject):
-        html = markdown(md, 
-        extensions=[
-            'markdown.extensions.tables',
-            'markdown.extensions.toc',
-            'markdown.extensions.codehilite'
-        ])
+    def send_res_email(self, md, subject, to_html=True):
+        if to_html:
+            html = markdown(md, 
+            extensions=[
+                'markdown.extensions.tables',
+                'markdown.extensions.toc',
+                'markdown.extensions.codehilite'
+            ])
+        else:
+            html = md
         send_message(toaddrs=os.environ.get("toaddrs").split("|"), subject=subject, content=html)
