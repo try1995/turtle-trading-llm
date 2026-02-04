@@ -3,23 +3,22 @@ from .baseAgent import baseAgent
 from prompt import sys_report_prompt, sys_tool_prompt
 from loguru import logger
 from tools.all_types import EmAllagents
-from tools import stock_research_report_em, stock_research_report_markdown, get_func_schema, save_response
+from tools import stock_research_report_ex, get_func_schema, save_response
 
 class ReportAgent(baseAgent):
-    def __init__(self, max_step=10):
+    def __init__(self):
         super().__init__()
         self.name = EmAllagents.reportAgent.name
         self.model = os.environ.get(self.name+"Model", self.model)
-        self.max_step = max_step
-        self.tools = [stock_research_report_em, stock_research_report_markdown]
+        self.tools = [stock_research_report_ex]
         self.tools_regist = [get_func_schema(func) for func in self.tools]
         self.tools_dict = {fun.__name__:fun for fun in self.tools}
     
+    @save_response
     def act(self, messages, response_message):
-        finish, messages, response = self.act_with_tools_stepbystep(messages, response_message)
-        return finish, messages, response
+        messages, tool_call_res = self.act_with_tools(messages, response_message)
+        return tool_call_res 
 
-    
     @save_response
     def run(self, question):
         logger.info(f"{self.name}：当前执行任务：{question}")
@@ -34,16 +33,9 @@ class ReportAgent(baseAgent):
                 "content": question
             },
         ]
-        max_step = self.max_step
-        tool_call_res = []
-        while max_step:
-            response_message = self.invork_with_tools(messages)
-            finish, messages, response = self.act(messages, response_message)
-            max_step -=1
-            if finish:
-                break
-            else:
-                tool_call_res.append(response)
+        response_message = self.invork_with_tools(messages)
+        tool_call_res = self.act(messages, response_message)
+
         new_messages=[
             {"role": "system", "content": sys_report_prompt},
             {

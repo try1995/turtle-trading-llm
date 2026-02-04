@@ -104,6 +104,23 @@ def stock_research_report_markdown(report_urls: Annotated[str, "英文逗号分�
     return "\n\n".join(report_res)
 
 
+def stock_research_report_ex(symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],):
+    """
+    返回研报的PDF解析结果，输出示例如下：
+    第一家研报解析结果：
+    xxx
+    
+    第二家研报解析结果：
+    xxx
+    """
+    rets = stock_research_report_em(symbol, cur_date)
+    urls = []
+    for ret in json.loads(rets)[:3]:
+        urls.append(ret["报告PDF链接"])
+    return stock_research_report_markdown(",".join(urls))
+        
+
 def get_indicators(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
     cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
