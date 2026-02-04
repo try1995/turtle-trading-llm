@@ -14,6 +14,7 @@ from tools.aktools import get_trade_date
 from datetime import datetime
 
 
+from agents.baseAgent import baseAgent
 from agents.planAgent import PlanAgent
 from loguru import logger
 
@@ -31,22 +32,25 @@ def hot_symbol_task():
     
     df = pd.merge(stock_hot_deal_xq_df.head(200), stock_hot_rank_em_df.head(200), how='inner')
     
-    logger.info(df)
+    logger.info(df.to_markdown(index=False))
     
+    if not df.empty:
+        plan = PlanAgent()
+        plan.send_res_email(df.to_html(index=False, justify="center"), subject="每日热榜", to_html=False)
                 
     for _, item in df.iterrows():
         symbol = item.股票代码[2:]
-        stock_info = ak.stock_individual_info_em(symbol)
-        stock_info_dict = stock_info.set_index('item')['value'].to_dict()
-        if stock_info_dict["总市值"] < 800 * 100000000:  # 市值大于一千亿
-            continue
+        # stock_info = ak.stock_individual_info_em(symbol)
+        # stock_info_dict = stock_info.set_index('item')['value'].to_dict()
+        # if stock_info_dict["总市值"] < 800 * 100000000:  # 市值大于一千亿
+        #     continue
         if symbol.startswith("3"):
             continue
         if symbol in exclude_symbol:
             continue
         if symbol in position_symbol:
             continue
-        logger.info(stock_info)
+        # logger.info(stock_info)
         plan = PlanAgent()
         plan.set_symbol(symbol)
         maxretry = 3
