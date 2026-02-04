@@ -25,6 +25,7 @@ class baseAgent(ABC):
         self.backtest_date = ""
         # 股票代码
         self.symbol = ""
+        self.symbol_name = ""
         # model
         self.model = os.environ.get("model")
         self.tool_call_mdoel = os.environ.get("toolCallModel", self.model)
@@ -75,7 +76,7 @@ class baseAgent(ABC):
             logger.error(e)
             logger.debug(tool_call.function.arguments)
             logger.info("执行repair_json")
-            function_args = repair_json(function_args, return_objects=True)
+            function_args = repair_json(tool_call.function.arguments, return_objects=True)
         logger.info(f"当前执行函数描述：{fun.__doc__.strip().splitlines()[0]}\n\
                     执行函数方法：{tool_call.function.name}\n\
                     执行函数参数：{tool_call.function.arguments}\n")
@@ -144,8 +145,9 @@ class baseAgent(ABC):
         self.backtest = True
         self.backtest_date = cur_date
 
-    def set_symbol(self, symbol):
+    def set_symbol(self, symbol, symbol_name):
         self.symbol = symbol
+        self.symbol_name = symbol_name
     
     def get_date_desc(self):
         if self.backtest:

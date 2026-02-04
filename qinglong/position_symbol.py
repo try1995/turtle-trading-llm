@@ -27,7 +27,6 @@ position_symbol = os.environ.get("position_symbol", "").split("|")
 def position_symbol_task():
     for symbol in position_symbol:
         plan = PlanAgent()
-        plan.set_symbol(symbol)
         maxretry = 3
         while maxretry:
             try:

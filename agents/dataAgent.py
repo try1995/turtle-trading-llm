@@ -28,11 +28,11 @@ class DataAgent(baseAgent):
     
     @save_response
     def run(self, question):
-        logger.info(f"{self.name}：当前执行任务：{question}")
+        logger.info(f"{self.name}：当前执行任务：{self.symbol_name} {question}")
         all_data = ""
         sub_task = ["基本面数据","技术面数据","同行对比"]
         for task in sub_task:
-            logger.info(f"{self.name}：当前执行任务：{self.symbol} {task}")
+            logger.info(f"{self.name}：当前执行任务：{self.symbol_name} {task}")
             messages = [
                 {"role": "system", "content": sys_tool_prompt},
                 {
@@ -41,7 +41,7 @@ class DataAgent(baseAgent):
                 },
                 {
                     "role": "user",
-                    "content": f"分析：{self.symbol}{task}"
+                    "content": f"{task}分析：{self.symbol_name}({self.symbol})"
                 }
             ]
             response_message = self.invork_with_tools(messages)
@@ -51,7 +51,7 @@ class DataAgent(baseAgent):
                 {"role": "system", "content": sys_data_prompt},
                 {
                     "role": "user",
-                    "content": f"基于用户提供的数据分析：{self.symbol}{task}\n用户提供数据如下：{res_str}"
+                    "content": f"基于用户提供的数据分析：{self.symbol_name}({self.symbol}){self.symbol}{task}\n用户提供数据如下：{res_str}"
                 }
             ]
             response_stream_res = self.invork(new_messages)

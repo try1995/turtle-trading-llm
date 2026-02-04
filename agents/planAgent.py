@@ -28,10 +28,10 @@ class PlanAgent(baseAgent):
         self.last_invest_suggestion = ""
         self.use_cache = True
 
-    def set_symbol(self, symbol):
-        super().set_symbol(symbol)
+    def set_symbol(self, symbol, name):
+        super().set_symbol(symbol, name)
         for _, v in self.agent_dict.items():
-            v.set_symbol(symbol)
+            v.set_symbol(symbol, name)
     
     def set_backtest(self, cur_date, last_invest_suggestion="无", use_cache=True):
         self.backtest = True
@@ -99,35 +99,38 @@ class PlanAgent(baseAgent):
             logger.info(f"{agent_name}：load cache successfully!!!")
         return res
             
-    def act(self, plan):
+    def act(self, plans):
         # 这是一个pipeline
-        for task in plan["subtasks"]:
-            agent_name, agent_task = task['assigned_agent'], task['task_details']
-            agent = self.agent_dict[agent_name]
-            if self.use_cache:
-                agent_res = self.get_cache_res(self.symbol, agent_name)
-                if agent_res == "无结果":
+        for plan in plans:
+            name, symbol = plan["name"], plan["symbol"].split(".")[0]
+            self.set_symbol(symbol, name)
+            for task in plan["tasks"]:
+                agent_name, agent_task = task['assigned_agent'], task['task_details']
+                agent = self.agent_dict[agent_name]
+                if self.use_cache:
+                    agent_res = self.get_cache_res(self.symbol, agent_name)
+                    if agent_res == "无结果":
+                        agent_res = agent.run(agent_task)
+                else:
                     agent_res = agent.run(agent_task)
-            else:
-                agent_res = agent.run(agent_task)
-            self.agent_res[agent_name] = agent_res
-            logger.info("*"*99)
+                self.agent_res[agent_name] = agent_res
+                logger.info("*"*99)
                 
     @logger.catch
     @save_response
-    def run(self, question, human_in_loop=False, use_cache=True, symbol=""):
+    def run(self, question, human_in_loop=False, use_cache=True):
         logger.info(f"{self.name}：当前执行任务：{question}")
         self.use_cache = use_cache
-        if symbol:
-            self.set_symbol(symbol)
         if self.use_cache:
             agent_res = self.get_cache_res(self.symbol, self.name)
             if agent_res == "无结果":
                 plan_raw = self.invork(question, human_in_loop)
             else:
                 plan_raw = agent_res
-        plan = repair_json(plan_raw, return_objects=True)
-        self.act(plan)
+        else:
+            plan_raw = self.invork(question, human_in_loop)
+        plans = repair_json(plan_raw, return_objects=True)
+        self.act(plans)
         return plan_raw
 
 

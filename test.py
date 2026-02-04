@@ -74,10 +74,10 @@ def test_server_jio():
 
 if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
-    # ret = test_stock_research_report_em()
+    ret = test_stock_research_report_em()
     # ret = test_markitdown()
     # ret = test_get_indicators()
-    print(get_trade_date(end_date="20260202"))
+    # print(get_trade_date(end_date="20260202"))
     # ret = get_stock_info()
     # ret = test_stock_yjbb_em_df()
     # ret = test_stock_individual_fund_flow()
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     # ret = test_stock_individual_info_em()
     # ret = test_stock_board_industry_summary_ths()
     # ret = test_stock_news_em()
-    # print(ret)
+    print(ret)
     # import akshare as ak
 
     # stock_news_main_cx_df = ak.stock_news_main_cx()

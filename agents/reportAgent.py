@@ -21,7 +21,7 @@ class ReportAgent(baseAgent):
 
     @save_response
     def run(self, question):
-        logger.info(f"{self.name}：当前执行任务：{question}")
+        logger.info(f"{self.name}：当前执行任务：{self.symbol_name} {question}")
         messages = [
             {"role": "system", "content": sys_tool_prompt},
             {
@@ -30,7 +30,7 @@ class ReportAgent(baseAgent):
             },
             {
                 "role": "user",
-                "content": question
+                "content": f"研报分析：{self.symbol_name}({self.symbol})"
             },
         ]
         response_message = self.invork_with_tools(messages)
