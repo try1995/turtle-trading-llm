@@ -30,7 +30,9 @@ def hot_symbol_task():
     # 人气榜-A股
     stock_hot_rank_em_df = ak.stock_hot_rank_em()
     
-    df = pd.merge(stock_hot_deal_xq_df.head(200), stock_hot_rank_em_df.head(200), how='inner')
+    stock_hot_deal_xq_df=stock_hot_deal_xq_df.rename(columns={"股票代码":"代码","股票简称":"股票名称"})
+    
+    df = pd.merge(stock_hot_deal_xq_df.head(200), stock_hot_rank_em_df.head(200), how='inner').head(20)
     
     logger.info(df.to_markdown(index=False))
     
@@ -43,7 +45,7 @@ def hot_symbol_task():
         plan.send_res_email(email_df.to_markdown(index=False), subject="每日热榜", table=True)
     
     for _, item in df.iterrows():
-        symbol = item.股票代码[2:]
+        symbol = item.代码[2:]
         # stock_info = ak.stock_individual_info_em(symbol)
         # stock_info_dict = stock_info.set_index('item')['value'].to_dict()
         # if stock_info_dict["总市值"] < 800 * 100000000:  # 市值大于一千亿
@@ -54,14 +56,12 @@ def hot_symbol_task():
             continue
         if symbol in position_symbol:
             continue
-        # logger.info(stock_info)
         plan = PlanAgent()
-        plan.set_symbol(symbol)
         maxretry = 3
         while maxretry:
             try:
-                plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
-                plan.send_allres_email(subject=f"{item.股票简称}分析")
+                plan.run(f"详细分析{item.股票名称}({symbol})行情情况，提供交易建议", human_in_loop=False)
+                plan.send_allres_email(subject=f"{item.股票名称}分析")
                 break
             except Exception as e:
                 logger.error(e)
