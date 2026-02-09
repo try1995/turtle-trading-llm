@@ -74,7 +74,7 @@ def test_server_jio():
 
 if __name__ == "__main__":
     # ret = get_func_schema(stock_zh_a_hist)
-    ret = test_stock_research_report_em()
+    # ret = test_stock_research_report_em()
     # ret = test_markitdown()
     # ret = test_get_indicators()
     # print(get_trade_date(end_date="20260202"))
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     # ret = test_stock_individual_info_em()
     # ret = test_stock_board_industry_summary_ths()
     # ret = test_stock_news_em()
-    print(ret)
+    # print(ret)
     # import akshare as ak
 
     # stock_news_main_cx_df = ak.stock_news_main_cx()
@@ -125,6 +125,11 @@ if __name__ == "__main__":
     # print("第五个")
     # print(stock_info_global_ths_df.head(6).to_dict())
     
-    print(stock_info_global_cls())
+    # print(stock_info_global_cls())
     # print(send_text("测试"))
-    
+
+    # stock_board_concept_name_em_df = ak.stock_board_concept_name_em()
+    # print(stock_board_concept_name_em_d
+    # stock_board_concept_cons_em_df = ak.stock_board_concept_cons_em(symbol="02GN2355")
+    # print(stock_board_concept_cons_em_df)
+    print(get_a_symbol_info("900001"))

@@ -10,7 +10,7 @@ if project_root not in sys.path:
 import akshare as ak
 import pandas as pd
 import pandas as pd
-from tools.aktools import get_trade_date
+from tools import get_trade_date, get_a_symbol_info
 from datetime import datetime
 
 
@@ -28,7 +28,7 @@ position_symbol = os.environ.get("position_symbol", "").split("|")
 def hot_symbol_task():
     stock_hot_up_em_df = ak.stock_hot_up_em()
     
-    df = stock_hot_up_em_df.head(1)
+    df = stock_hot_up_em_df.head(3)
     
     logger.info(df.to_markdown(index=False))
     
@@ -46,7 +46,7 @@ def hot_symbol_task():
         # stock_info_dict = stock_info.set_index('item')['value'].to_dict()
         # if stock_info_dict["总市值"] < 800 * 100000000:  # 市值大于一千亿
         #     continue
-        if symbol.startswith("3"):
+        if get_a_symbol_info(symbol) is None:
             continue
         if symbol in exclude_symbol:
             continue

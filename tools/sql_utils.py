@@ -59,8 +59,9 @@ class StockNews(Base):
             {cls.affected_industry}\n{cls.impact_logic}\n\n{cls.company_name}\n{cls.symbol}\n\n{cls.risk_focus}"
         
     
-class StockInfos(Base):
-    __tablename__ = "stock_infos"
+class AStockInfos(Base):
+    # A股
+    __tablename__ = "a_stock_infos"
     
     symbol = Column(String(20), primary_key=True, comment="股票代码")
     name = Column(String(40), nullable=True, comment="股票名称")

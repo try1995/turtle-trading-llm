@@ -1,16 +1,15 @@
 # 必选大模型相关参数
 api_key="sk-"
-model=""
-base_url=""
+base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+model="qwen-plus-latest"
 
-# 单独给agent设置不同的模型，不设置默认使用model
-# toolCallModel=""
-# planAgentModel=""
-# dataAgentModel=""
-# reportAgentModel=""
-# publicOptionAgentModel=""
-# investmentAgentModel=""
-# xuanguAgentModel=""
+toolCallModel="qwen3-max-preview"
+# planAgentModel="qwen-turbo-latest"
+# dataAgentModel="qwen-max"
+reportAgentModel="qwen-long-latest"
+publicOptionAgentModel="qwen-max-2025-01-25"
+investmentAgentModel="qwen3-max-preview"
+xuanguAgentModel="qwen-turbo"
 
 
 # 以下可选，给自己邮箱发邮件使用

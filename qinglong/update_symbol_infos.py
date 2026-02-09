@@ -26,11 +26,11 @@ datas = response.json()
 
 all_data = []
 for data in datas:
-    all_data.append(StockInfos(
+    all_data.append(AStockInfos(
         symbol = data["dm"].split(".")[0],
         name = data["mc"],
         jys = data["jys"]
     ))
 
-clear_record(StockInfos)
+clear_record(AStockInfos)
 add_records(all_data)

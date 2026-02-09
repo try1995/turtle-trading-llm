@@ -141,3 +141,14 @@ def push_server_jio(title, desp):
         push_url = f'https://sctapi.ftqq.com/{SENDKEY}.send'
         data = {'title': title, 'desp': desp}
         requests.post(push_url, data=data)
+
+
+def get_a_symbol_info(symbol):
+    # 只有A股信息
+    from .sql_utils import select, AStockInfos, find_record
+    smt = select(AStockInfos).where(AStockInfos.symbol==symbol)
+    records = find_record(smt)
+    if records:
+        res: AStockInfos = records[0]["AStockInfos"]
+        return res.name, res.symbol, res.jys
+    return None
