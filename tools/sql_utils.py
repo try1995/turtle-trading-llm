@@ -59,6 +59,14 @@ class StockNews(Base):
             {cls.affected_industry}\n{cls.impact_logic}\n\n{cls.company_name}\n{cls.symbol}\n\n{cls.risk_focus}"
         
     
+class StockInfos(Base):
+    __tablename__ = "stock_infos"
+    
+    symbol = Column(String(20), primary_key=True, comment="股票代码")
+    name = Column(String(40), nullable=True, comment="股票名称")
+    jys = Column(String(4), nullable=True, comment="交易所")
+    
+    
 # 创建表（同步）
 Base.metadata.create_all(bind=engine)
 
@@ -98,12 +106,31 @@ def add_record(data):
     except Exception as e:
         logger.error(e)
         
+def add_records(datas):
+    try:
+        with Session(engine) as session:
+            session.add_all(datas)
+            session.commit()
+    except IntegrityError as _:
+        pass
+    except Exception as e:
+        logger.error(e)
 # 删改
 def exec_record(smt):
     with Session(engine) as session:
         # 查询所有
         try:
             session.execute(smt)
+            session.commit()
+        except Exception as e:
+            logger.error(e)
+            
+# 清空表
+def clear_record(table):
+    with Session(engine) as session:
+        # 查询所有
+        try:
+            session.query(table).delete()
             session.commit()
         except Exception as e:
             logger.error(e)
