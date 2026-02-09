@@ -132,4 +132,4 @@ if __name__ == "__main__":
     # print(stock_board_concept_name_em_d
     # stock_board_concept_cons_em_df = ak.stock_board_concept_cons_em(symbol="02GN2355")
     # print(stock_board_concept_cons_em_df)
-    print(get_a_symbol_info("900001"))
+    print(stock_research_report_ex("000001","20260209"))

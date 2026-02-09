@@ -95,13 +95,9 @@ def stock_research_report_markdown(report_urls: Annotated[str, "英文逗号分�
             file_path = os.path.join(tempdir, "temp.pdf")
             with open(file_path, 'wb') as f:
                 f.write(ret.content)
-            try:
                 result = markdownpdf(file_path)
-            except Exception as e:
-                logger.error(e)
-                result = "无结果"
             report_res.append(f"第{index+1}家研报解析结果:\n"+result)
-    return "\n\n".join(report_res)
+    return "\n\n".join(report_res) if report_res else "无研报结果"
 
 
 def stock_research_report_ex(symbol: Annotated[str, "股票代码，e.g. 000001"],

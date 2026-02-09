@@ -9,6 +9,8 @@ from typing import Annotated
 from .all_types import EmAllagents
 from readability import Document
 from bs4 import BeautifulSoup
+from loguru import logger
+import pymupdf # imports the pymupdf library
 
 
 
@@ -65,10 +67,22 @@ def get_func_schema(func):
 
 
 def markdownpdf(file_path):
-    md = MarkItDown(docintel_endpoint="<document_intelligence_endpoint>")
-    result = md.convert(file_path)
-    return result.text_content
-
+    result = ""
+    try:
+        md = MarkItDown(docintel_endpoint="<document_intelligence_endpoint>")
+        result = md.convert(file_path)
+        return result.text_content
+    except Exception as e:
+        logger.error(e)
+    if not result:
+        try:
+            doc = pymupdf.open(file_path) # open a document
+            for page in doc: # iterate the document pages
+                result += page.get_text() #
+            return result
+        except Exception as e:
+            logger.error(e)
+    return "未抽取到结果"
 
 def save_response(func):
     def wrapper(self, *args, **kwargs):
