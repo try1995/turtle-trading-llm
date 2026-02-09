@@ -32,7 +32,6 @@ col_map = {
     '舆情情绪': 'sentiment',
     '情绪判断依据': 'sentiment_basis',
     '影响行业/板块': 'affected_industry',
-    '行业影响方向': 'impact_direction',
     '影响逻辑说明': 'impact_logic',
     '公司名称': 'company_name',
     '股票代码': 'symbol',

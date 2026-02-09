@@ -39,7 +39,6 @@ class StockNews(Base):
     
     # 行业影响维度
     affected_industry = Column(String(200), nullable=True, comment="影响行业/板块")
-    impact_direction = Column(String(20), nullable=True, comment="行业影响方向")
     impact_logic = Column(Text, nullable=True, comment="影响逻辑说明")
     
     # 标的关联
@@ -57,7 +56,7 @@ class StockNews(Base):
 
     def __repr__(cls):
         return f"{cls.title}\n\n{cls.content}\n\n{cls.sentiment}\n{cls.sentiment_basis}\n\n\
-            {cls.affected_industry}\n{cls.impact_direction}\n{cls.impact_logic}\n\n{cls.company_name}\n{cls.symbol}\n\n{cls.risk_focus}"
+            {cls.affected_industry}\n{cls.impact_logic}\n\n{cls.company_name}\n{cls.symbol}\n\n{cls.risk_focus}"
         
     
 # 创建表（同步）
