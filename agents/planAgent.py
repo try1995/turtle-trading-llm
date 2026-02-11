@@ -118,9 +118,10 @@ class PlanAgent(baseAgent):
                 
     @logger.catch
     @save_response
-    def run(self, question, human_in_loop=False, use_cache=True):
+    def run(self, question, human_in_loop=False, use_cache=True, symbol=""):
         logger.info(f"{self.name}：当前执行任务：{question}")
         self.use_cache = use_cache
+        self.symbol = symbol
         if self.use_cache:
             agent_res = self.get_cache_res(self.symbol, self.name)
             if agent_res == "无结果":
@@ -135,5 +136,19 @@ class PlanAgent(baseAgent):
 
 
     def send_allres_email(self, subject):
-        md = get_all_agent_res(self.symbol, self.get_date_desc()[1])
+        cur_date = self.get_date_desc()[1]
+        hight_format = """\n\n### <span style="color: red;">{agent} POWER BY {model} </span>\n\n"""
+        invest_agent_res = get_cache(cur_date, self.symbol, EmAllagents.investmentAgent.name)
+        invest_agent_res += hight_format.format(agent=EmAllagents.investmentAgent.name, model=self.agent_dict[EmAllagents.investmentAgent.name].model)
+        data_agent_res = get_cache(cur_date, self.symbol, EmAllagents.dataAgent.name)
+        data_agent_res += hight_format.format(agent=EmAllagents.dataAgent.name, model=self.agent_dict[EmAllagents.dataAgent.name].model)
+        report_agent_res = get_cache(cur_date, self.symbol, EmAllagents.reportAgent.name)
+        report_agent_res += hight_format.format(agent=EmAllagents.reportAgent.name, model=self.agent_dict[EmAllagents.reportAgent.name].model)
+        public_agent_res = get_cache(cur_date, self.symbol, EmAllagents.publicOptionAgent.name)
+        public_agent_res += hight_format.format(agent=EmAllagents.publicOptionAgent.name, model=self.agent_dict[EmAllagents.publicOptionAgent.name].model)
+    
+        md = "\n\n# 投资建议：\n" + invest_agent_res+\
+            "\n\n\n# 行情及技术指标解析：\n" + data_agent_res + \
+            "\n\n# 研报解析：\n" + report_agent_res + \
+            "\n\n# 舆情解析：\n" + public_agent_res
         self.send_res_email(md, subject)
