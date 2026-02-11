@@ -151,4 +151,4 @@ class PlanAgent(baseAgent):
             "\n\n\n# 行情及技术指标解析：\n" + data_agent_res + \
             "\n\n# 研报解析：\n" + report_agent_res + \
             "\n\n# 舆情解析：\n" + public_agent_res
-        self.send_res_email(md, subject)
+        self.send_res_email(md, subject, table=True)

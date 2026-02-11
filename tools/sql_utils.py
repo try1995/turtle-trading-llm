@@ -45,9 +45,6 @@ class StockNews(Base):
     company_name = Column(String(300), nullable=True, comment="涉及公司名称")
     symbol = Column(String(300), nullable=True, comment="股票代码")
     
-    # 风险维度
-    risk_focus = Column(Text, nullable=True, comment="风险与关注点")
-    
     # 系统字段
     notifyed = Column(Boolean, default=False, comment="是否已通知")
     
