@@ -92,6 +92,7 @@ class baseAgent(ABC):
             else:
                 break
         logger.debug(f"执行结果：{response[:500]}...")
+        response = fun.__doc__.strip().splitlines()[0] + "\n:" + response
         return response
     
     def act_with_tools(self, messages: list, response_message):
@@ -152,15 +153,15 @@ class baseAgent(ABC):
     def get_date_desc(self):
         if self.backtest:
             xinqi = datetime.strptime(self.backtest_date, "%Y%m%d").weekday() + 1
-            return f"当前时间是：{self.backtest_date}，星期{xinqi}", self.backtest_date
+            return f"当前时yy是：{self.backtest_date}，星期{xinqi}", self.backtest_date
         else:
             now = datetime.now()
             # 先判断是否在交易日
             trade_date = get_trade_date(end_date=now.strftime('%Y%m%d'))
             if now.strftime('%Y%m%d') in trade_date:
-                if datetime.now().hour < 15:
+                if datetime.now().hour <= 9 and datetime.now().minute < 30:
                     now = datetime.strptime(trade_date[-2], '%Y%m%d')
-                    logger.info(f"{self.name}：收盘前，改成前一个交易日")
+                    logger.info(f"{self.name}：是交易日但是未开盘，改成前一个交易日")
             else:
                 # 不在交易日则取最近的交易日
                 now = datetime.strptime(trade_date[-1], '%Y%m%d')

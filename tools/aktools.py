@@ -7,9 +7,9 @@ import talib as ta
 from datetime import datetime, timedelta
 import akshare as ak
 import pandas as pd
-from .base_tool import markdownpdf, fetch_url_content
+from .base_tool import markdownpdf, fetch_url_content, get_market
 from loguru import logger
-from typing import get_type_hints, Optional, Any, List, Dict, Annotated
+from typing import Annotated
 
 
 def stock_zh_a_hist(
@@ -202,15 +202,6 @@ def stock_yjbb_em(
     return json.dumps(record, ensure_ascii=False)
 
 
-def get_market(code: str) -> str:
-    """返回 'sh' / 'sz' / 'bj'"""
-    code = code.strip()
-    if code.startswith(('6', '9')):          # 6xxxxxx、900xxx
-        return 'sh'
-    if code.startswith(('0', '3')):          # 0xxxxxx、3xxxxxx
-        return 'sz'
-    # 其余按北交所处理（8xxxxxx 或 8 位代码）
-    return 'bj'
 
 def stock_individual_fund_flow(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
@@ -297,7 +288,7 @@ def stock_value_em(
     record = record.to_dict("records")[0]
     return json.dumps(record, ensure_ascii=False)
 
-
+# 经常出问题，使用智兔接口替换zt_stock_info
 def stock_individual_info_em(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
 ):

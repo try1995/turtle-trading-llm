@@ -166,3 +166,14 @@ def get_a_symbol_info(symbol):
         res: AStockInfos = records[0]["AStockInfos"]
         return res.name, res.symbol, res.jys
     return None
+
+
+def get_market(code: str) -> str:
+    """返回 'sh' / 'sz' / 'bj'"""
+    code = code.strip()
+    if code.startswith(('6', '9')):          # 6xxxxxx、900xxx
+        return 'sh'
+    if code.startswith(('0', '3')):          # 0xxxxxx、3xxxxxx
+        return 'sz'
+    # 其余按北交所处理（8xxxxxx 或 8 位代码）
+    return 'bj'
