@@ -52,23 +52,24 @@ def xuangu_process_news_after(df):
         )
         exec_record(smt)
         symbol = data["symbol"]
-        if data["sentiment"] == "极度正面" and symbol != "未提及":
+        if data["sentiment"] == "极度正面":
             try:
                 smt = select(StockNews).where(StockNews.id == id)
                 records = find_record(smt)
                 push_server_jio(f"极度正面{symbol}出现了！", desp=records[0]["StockNews"].__repr__())
             except Exception as e:
                 logger.error(e)
-            plan = PlanAgent()
-            maxretry = 3
-            while maxretry:
-                try:
-                    plan.run(f"详细分析{data['company_name']}({symbol})行情情况，提供交易建议", human_in_loop=False)
-                    plan.send_allres_email(subject=f"极度正面{data['company_name']}({symbol})分析")
-                    break
-                except Exception as e:
-                    logger.error(e)
-                    maxretry -= 1
+            if symbol != "未提及":
+                plan = PlanAgent()
+                maxretry = 3
+                while maxretry:
+                    try:
+                        plan.run(f"详细分析{data['company_name']}({symbol})行情情况，提供交易建议", human_in_loop=False)
+                        plan.send_allres_email(subject=f"极度正面{data['company_name']}({symbol})分析")
+                        break
+                    except Exception as e:
+                        logger.error(e)
+                        maxretry -= 1
 
 
 def xuangu_process_news_before(all_news, subject):
