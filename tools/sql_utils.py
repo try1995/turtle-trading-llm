@@ -29,7 +29,7 @@ class StockNews(Base):
     __tablename__ = "stock_news"
     
     id = Column(String(32), primary_key=True)
-    title = Column(String(200), nullable=False, comment="标题 or 摘要")
+    title = Column(Text, nullable=False, comment="标题 or 摘要")
     content = Column(Text, comment="内容")
     source = Column(String(20), default="财联社", comment="来源")
     
@@ -38,12 +38,12 @@ class StockNews(Base):
     sentiment_basis = Column(Text, nullable=True, comment="情绪判断依据")
     
     # 行业影响维度
-    affected_industry = Column(String(200), nullable=True, comment="影响行业/板块")
+    affected_industry = Column(Text, nullable=True, comment="影响行业/板块")
     impact_logic = Column(Text, nullable=True, comment="影响逻辑说明")
     
     # 标的关联
-    company_name = Column(String(300), nullable=True, comment="涉及公司名称")
-    symbol = Column(String(300), nullable=True, comment="股票代码")
+    company_name = Column(Text, nullable=True, comment="涉及公司名称")
+    symbol = Column(Text, nullable=True, comment="股票代码")
     
     # 系统字段
     notifyed = Column(Boolean, default=False, comment="是否已通知")
