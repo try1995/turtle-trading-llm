@@ -7,7 +7,7 @@ import talib as ta
 from datetime import datetime, timedelta
 import akshare as ak
 import pandas as pd
-from .base_tool import markdownpdf, fetch_url_content, get_market
+from .base_tool import markdownpdf, fetch_url_content, get_market, save_func_response, get_func_response
 from loguru import logger
 from typing import Annotated
 
@@ -88,6 +88,9 @@ def stock_research_report_markdown(report_urls: Annotated[str, "英文逗号分�
     第二家研报解析结果：
     xxx
     """
+    ret = get_func_response(report_urls)
+    if ret:
+        return ret
     report_res = []
     for index, report_url in enumerate(report_urls.split(",")):
         with tempfile.TemporaryDirectory() as tempdir:
@@ -97,6 +100,7 @@ def stock_research_report_markdown(report_urls: Annotated[str, "英文逗号分�
                 f.write(ret.content)
                 result = markdownpdf(file_path)
             report_res.append(f"第{index+1}家研报解析结果:\n"+result)
+    save_func_response(report_urls, "\n\n".join(report_res))
     return "\n\n".join(report_res) if report_res else "无研报结果"
 
 

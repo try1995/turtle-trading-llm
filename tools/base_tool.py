@@ -3,6 +3,7 @@ import json
 import config
 import inspect
 import requests
+from hashlib import md5
 from typing import get_type_hints
 from markitdown import MarkItDown
 from typing import Annotated
@@ -106,7 +107,36 @@ def get_cache(cur_date, symbol, agent_name):
         return cache_res
     else:
         return "无结果"
-        
+
+def save_func_response(params, ret):
+    
+    # 创建一个md5对象
+    obj = md5()
+
+    # 更新哈希对象，这里需要将字符串转换为字节
+    obj.update(params.encode("utf-8"))
+
+    # 获取十六进制格式的哈希值
+    md5_file_name = obj.hexdigest()
+    with open(os.path.join(config.cache_dir, "cache", md5_file_name), "w") as f:
+        f.write(ret)
+
+def get_func_response(params):
+    # 创建一个md5对象
+    obj = md5()
+
+    # 更新哈希对象，这里需要将字符串转换为字节
+    obj.update(params.encode("utf-8"))
+
+    # 获取十六进制格式的哈希值
+    md5_file_name = obj.hexdigest()
+    
+    file_path = os.path.join(config.cache_dir, "cache", md5_file_name)
+    
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
+            data = f.read()
+            return data
 
 def get_agent_res(
     symbol: Annotated[str, "股票代码，e.g. 000001"],

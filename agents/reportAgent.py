@@ -3,7 +3,7 @@ from .baseAgent import baseAgent
 from prompt import sys_report_prompt, sys_tool_prompt
 from loguru import logger
 from tools.all_types import EmAllagents
-from tools import stock_research_report_ex, get_func_schema, save_response
+from tools import stock_research_report_ex, get_func_schema, save_response, save_func_response, get_func_response
 
 class ReportAgent(baseAgent):
     def __init__(self):
@@ -43,7 +43,11 @@ class ReportAgent(baseAgent):
                 "content": "\n\n".join(tool_call_res)
             }
         ]
-        final_response_stream_res = self.invork(new_messages)
+        
+        final_response_stream_res = get_func_response("\n\n".join(tool_call_res))
+        if not final_response_stream_res:
+            final_response_stream_res = self.invork(new_messages)
+            save_func_response("\n\n".join(tool_call_res), final_response_stream_res)
         return final_response_stream_res
                     
 
