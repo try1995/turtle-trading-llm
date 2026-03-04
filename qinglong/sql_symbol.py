@@ -113,7 +113,7 @@ def position_task():
     if records:
         all_news = []
         for record in records:
-            all_news.append(f"新闻id:{record['StockNews'].id}"+record['StockNews'].content)
+            all_news.append(f"新闻id:{record['StockNews'].id}\n\n新闻标题：{record['StockNews'].title}\n\n新闻内容:{record['StockNews'].content}")
 
         df = xuangu_process_news_before(all_news, subject)
         xuangu_process_news_after(df)
@@ -126,7 +126,7 @@ def main():
         logger.info("未在交易日，发送最大窗口翻倍")
     global max_notify_size
     max_notify_size += max_notify_size
-    telegraph_task()
+    # telegraph_task()
     position_task()
 
 if __name__ == "__main__":
