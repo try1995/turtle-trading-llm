@@ -131,6 +131,7 @@ def get_func_response(params):
     # 获取十六进制格式的哈希值
     md5_file_name = obj.hexdigest()
     
+    os.makedirs(os.path.join(config.cache_dir, "cache"), exist_ok=True)
     file_path = os.path.join(config.cache_dir, "cache", md5_file_name)
     
     if os.path.exists(file_path):
