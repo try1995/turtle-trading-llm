@@ -208,3 +208,231 @@ def zt_stock_info(
     df = df.astype(str).to_dict("records")
     
     return json.dumps(df, ensure_ascii=False)
+
+
+def zt_stock_macd(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    # period: Annotated[Literal["5", "15", "30", "60", "d", "w", "m", "y"], 
+    #                   "分时级别：5=5分钟,15=15分钟,30=30分钟,60=60分钟,d=日线,w=周线,m=月线,y=年线"],
+    # adjust: Annotated[Literal["n", "f", "b", "fr", "br"], 
+    #                   "除权类型：n=不复权,f=前复权,b=后复权,fr=等比前复权,br=等比后复权(分钟级只能用n)"],
+    start_date: Annotated[str, "开始时间 %Y%m%d，e.g. 20240101"],
+    end_date: Annotated[str, "结束时间 %Y%m%d，e.g. 20240102"],
+    # limit: Annotated[int, "最新条数，e.g. 50表示获取最新50条数据"] = 50
+):
+    """
+    描述：根据《股票列表》得到的股票代码和分时级别获取历史MACD数据，交易时间升序
+    
+    输出参数-MACD指标数据
+
+    名称        类型      描述
+    交易时间     string   短分时级别格式为yyyy-MM-dd HH:mm:ss，日线级别为yyyy-MM-dd
+    DIFF值      number   DIFF值
+    DEA值       number   DEA值
+    MACD值      number   MACD值
+    EMA12值     number   EMA（12）值
+    EMA26值     number   EMA（26）值
+    """
+    # 构建带市场标识的股票代码
+    symbol_with_market = symbol + "." + get_market(symbol).upper()
+    
+    period = "d"
+    adjust = "n"
+    # 构建基础URL
+    url = f"https://api.zhituapi.com/hs/history/macd/{symbol_with_market}/{period}/{adjust}?token={ZT_TOKEN}&st={start_date}&et={end_date}"
+    
+    url += f"&lt={50}"
+
+    # 发送请求
+    response = requests.get(url)
+    data = response.json()
+    
+    # 创建DataFrame
+    df = pd.DataFrame(data)
+    
+    # 重命名列
+    column_mapping = {
+        't': '交易时间',
+        'diff': 'DIFF值',
+        'dea': 'DEA值',
+        'macd': 'MACD值',
+        'ema12': 'EMA12值',
+        'ema26': 'EMA26值'
+    }
+    df = df.rename(columns=column_mapping)
+    
+    # 将所有列转换为object类型并转为字典列表
+    df = df.astype(str).to_dict("records")
+    
+    return json.dumps(df, ensure_ascii=False)
+
+
+def zt_stock_ma(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    # period: Annotated[Literal["5", "15", "30", "60", "d", "w", "m", "y"], 
+    #                   "分时级别：5=5分钟,15=15分钟,30=30分钟,60=60分钟,d=日线,w=周线,m=月线,y=年线"],
+    # adjust: Annotated[Literal["n", "f", "b", "fr", "br"], 
+    #                   "除权类型：n=不复权,f=前复权,b=后复权,fr=等比前复权,br=等比后复权(分钟级只能用n)"],
+    start_date: Annotated[str, "开始时间 %Y%m%d，e.g. 20240101"],
+    end_date: Annotated[str, "结束时间 %Y%m%d，e.g. 20241231"],
+):
+    """
+    描述：根据《股票列表》得到的股票代码和分时级别获取历史MA（移动平均线）数据，交易时间升序
+    
+
+    输出参数-MA指标数据
+
+    名称        类型      描述
+    交易时间     string   短分时级别格式为yyyy-MM-dd HH:mm:ss，日线级别为yyyy-MM-dd
+    MA5值       number   5周期移动平均线值
+    MA10值      number   10周期移动平均线值
+    MA20值      number   20周期移动平均线值
+    MA30值      number   30周期移动平均线值
+    MA60值      number   60周期移动平均线值
+    MA120值     number   120周期移动平均线值
+    MA250值     number   250周期移动平均线值
+    """
+    # 构建带市场标识的股票代码
+    symbol_with_market = symbol + "." + get_market(symbol).upper()
+    
+    # 构建基础URL
+    period = "d"
+    adjust = "n"
+    url = f"https://api.zhituapi.com/hs/history/ma/{symbol_with_market}/{period}/{adjust}?token={ZT_TOKEN}&st={start_date}&et={end_date}"
+    
+    url += f"&lt={50}"
+    # 发送请求
+    response = requests.get(url)
+    data = response.json()
+    
+    # 创建DataFrame
+    df = pd.DataFrame(data)
+    
+    # 重命名列
+    column_mapping = {
+        't': '交易时间',
+        'ma5': 'MA5值',
+        'ma10': 'MA10值',
+        'ma20': 'MA20值',
+        'ma30': 'MA30值',
+        'ma60': 'MA60值',
+        'ma120': 'MA120值',
+        'ma250': 'MA250值'
+    }
+    df = df.rename(columns=column_mapping)
+    
+    # 将所有列转换为object类型并转为字典列表
+    df = df.astype(str).to_dict("records")
+    
+    return json.dumps(df, ensure_ascii=False)
+
+
+def zt_stock_boll(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    start_date: Annotated[str, "开始时间 %Y%m%d，e.g. 20240101"],
+    end_date: Annotated[str, "结束时间 %Y%m%d，e.g. 20241231"],
+):
+    """
+    描述：根据《股票列表》得到的股票代码和分时级别获取历史BOLL（布林带）数据，交易时间升序
+    
+    输出参数-BOLL指标数据
+
+    名称        类型      描述
+    交易时间     string   短分时级别格式为yyyy-MM-dd HH:mm:ss，日线级别为yyyy-MM-dd
+    上轨        number   布林带上轨值(UP)
+    中轨        number   布林带中轨值(MID)
+    下轨        number   布林带下轨值(DOWN)
+    """
+    # 构建带市场标识的股票代码
+    symbol_with_market = symbol + "." + get_market(symbol).upper()
+
+    period = "d"
+    adjust = "n"
+    # 构建基础URL
+    url = f"https://api.zhituapi.com/hs/history/boll/{symbol_with_market}/{period}/{adjust}?token={ZT_TOKEN}&st={start_date}&et={end_date}"
+    
+    url += f"&lt={50}"
+    
+    # 发送请求
+    response = requests.get(url)
+    data = response.json()
+    
+    # 创建DataFrame
+    df = pd.DataFrame(data)
+    
+    # 重命名列（注意：文档中u=上轨, d=下轨, m=中轨）
+    column_mapping = {
+        't': '交易时间',
+        'u': '上轨',
+        'm': '中轨',
+        'd': '下轨'
+    }
+    df = df.rename(columns=column_mapping)
+    
+    # 调整列顺序：时间、上轨、中轨、下轨
+    df = df[['交易时间', '上轨', '中轨', '下轨']]
+    
+    # 将所有列转换为object类型并转为字典列表
+    df = df.astype(str).to_dict("records")
+    
+    return json.dumps(df, ensure_ascii=False)
+
+
+def zt_stock_kdj(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    start_date: Annotated[str, "开始时间 %Y%m%d，e.g. 20240101"],
+    end_date: Annotated[str, "结束时间 %Y%m%d，e.g. 20241231"],
+):
+    """
+    描述：根据《股票列表》得到的股票代码和分时级别获取历史KDJ（随机指标）数据，交易时间升序
+    
+    更新频率：
+    - 分钟级别数据盘中更新，分时越小越优先更新
+      （如5分钟级别每5分钟更新，15分钟级别每15分钟更新，以此类推）
+    - 日线及以上级别每日15:35更新
+    
+    请求频率限制：
+    - 体验版：1分钟1000次
+    - 包量版：1分钟300次
+    - 包月版：1分钟1000次
+    - 包年版：1分钟3000次
+    - 至尊版：1分钟6000次
+
+    输出参数-KDJ指标数据
+
+    名称        类型      描述
+    交易时间     string   短分时级别格式为yyyy-MM-dd HH:mm:ss，日线级别为yyyy-MM-dd
+    K值         number   K值（快速确认线）
+    D值         number   D值（慢速主干线）
+    J值         number   J值（方向敏感线）
+    """
+    # 构建带市场标识的股票代码
+    symbol_with_market = symbol + "." + get_market(symbol).upper()
+    
+    period = "d"
+    adjust = "n"
+    # 构建基础URL
+    url = f"https://api.zhituapi.com/hs/history/kdj/{symbol_with_market}/{period}/{adjust}?token={ZT_TOKEN}&st={start_date}&et={end_date}"
+    
+    url += f"&lt={50}"
+    
+    # 发送请求
+    response = requests.get(url)
+    data = response.json()
+    
+    # 创建DataFrame
+    df = pd.DataFrame(data)
+    
+    # 重命名列
+    column_mapping = {
+        't': '交易时间',
+        'k': 'K值',
+        'd': 'D值',
+        'j': 'J值'
+    }
+    df = df.rename(columns=column_mapping)
+    
+    # 将所有列转换为object类型并转为字典列表
+    df = df.astype(str).to_dict("records")
+    
+    return json.dumps(df, ensure_ascii=False)

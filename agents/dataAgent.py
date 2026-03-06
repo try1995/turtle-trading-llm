@@ -11,7 +11,9 @@ from json_repair import repair_json
 class DataAgent(baseAgent):
     def __init__(self):
         super().__init__()
-        self.tools = [zt_stock_hist_price, zt_stock_latest_price, zt_stock_info, get_indicators, stock_individual_fund_flow, \
+        self.tools = [zt_stock_hist_price, zt_stock_latest_price, zt_stock_info, \
+            zt_stock_kdj , zt_stock_boll, zt_stock_ma, zt_stock_macd,\
+            stock_individual_fund_flow, \
             stock_board_industry_summary_ths, \
             stock_financial_report_sina, stock_zh_growth_comparison_em, \
             stock_zh_valuation_comparison_em, stock_zh_scale_comparison_em, stock_value_em]

@@ -121,6 +121,7 @@ def stock_research_report_ex(symbol: Annotated[str, "股票代码，e.g. 000001"
     return stock_research_report_markdown(",".join(urls))
         
 
+# 被智兔接口取代
 def get_indicators(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
     cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
