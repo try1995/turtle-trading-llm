@@ -26,51 +26,49 @@ position_symbol = os.environ.get("position_symbol", "").split("|")
 
 # 热榜选股
 def hot_symbol_task():
-    # stock_hot_up_em_df = ak.stock_hot_up_em()
+    stock_hot_up_em_df = ak.stock_hot_up_em()
     
-    # df = stock_hot_up_em_df.head(3)
+    df = stock_hot_up_em_df.head(3)
     
-    # logger.info(df.to_markdown(index=False))
+    logger.info(df.to_markdown(index=False))
     
-    # if not df.empty:
-    d = {"col1": [1, 2], "col2": [3, 4]}
-    df = pd.DataFrame(data=d)
-    plan = PlanAgent()
-    email_df = df.copy()
-    # email_df['涨跌幅'] = email_df['涨跌幅'].apply(
-    #     lambda x: f'<span style="color: green;">{x}</span>' if x < 0 else f'<span style="color: red;">{x}</span>'
-    # )
-    plan.send_res_email(email_df.to_markdown(index=False), subject="每日上升榜", table=True)
+    if not df.empty:
+        plan = PlanAgent()
+        email_df = df.copy()
+        email_df['涨跌幅'] = email_df['涨跌幅'].apply(
+            lambda x: f'<span style="color: green;">{x}</span>' if x < 0 else f'<span style="color: red;">{x}</span>'
+        )
+        plan.send_res_email(email_df.to_markdown(index=False), subject="每日上升榜", table=True)
     
-    # for _, item in df.iterrows():
-    #     symbol = item.代码[2:]
-    #     # stock_info = ak.stock_individual_info_em(symbol)
-    #     # stock_info_dict = stock_info.set_index('item')['value'].to_dict()
-    #     # if stock_info_dict["总市值"] < 800 * 100000000:  # 市值大于一千亿
-    #     #     continue
-    #     if get_a_symbol_info(symbol) is None:
-    #         continue
-    #     if symbol in exclude_symbol:
-    #         continue
-    #     if symbol in position_symbol:
-    #         continue
-    #     plan = PlanAgent()
-    #     maxretry = 3
-    #     while maxretry:
-    #         try:
-    #             plan.run(f"详细分析{item.股票名称}({symbol})行情情况，提供交易建议", human_in_loop=False)
-    #             plan.send_allres_email(subject=f"{item.股票名称}分析")
-    #             break
-    #         except Exception as e:
-    #             logger.error(e)
-    #             maxretry -= 1
+    for _, item in df.iterrows():
+        symbol = item.代码[2:]
+        # stock_info = ak.stock_individual_info_em(symbol)
+        # stock_info_dict = stock_info.set_index('item')['value'].to_dict()
+        # if stock_info_dict["总市值"] < 800 * 100000000:  # 市值大于一千亿
+        #     continue
+        if get_a_symbol_info(symbol) is None:
+            continue
+        if symbol in exclude_symbol:
+            continue
+        if symbol in position_symbol:
+            continue
+        plan = PlanAgent()
+        maxretry = 3
+        while maxretry:
+            try:
+                plan.run(f"详细分析{item.股票名称}({symbol})行情情况，提供交易建议", human_in_loop=False)
+                plan.send_allres_email(subject=f"{item.股票名称}分析")
+                break
+            except Exception as e:
+                logger.error(e)
+                maxretry -= 1
 
 
 def daily_task():
-    # now = datetime.now().strftime("%Y%m%d")
-    # if now not in get_trade_date():
-    #     logger.info("未在交易日，跳过")
-    #     return
+    now = datetime.now().strftime("%Y%m%d")
+    if now not in get_trade_date():
+        logger.info("未在交易日，跳过")
+        return
     hot_symbol_task()
     
     
