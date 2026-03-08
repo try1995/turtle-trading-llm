@@ -170,7 +170,7 @@ class baseAgent(ABC):
             return f"当前时间是：{now.strftime('%Y%m%d')}，星期{xinqi}", now.strftime("%Y%m%d")
     
     @logger.catch
-    def send_res_email(self, md, subject, table=False):
+    def send_res_email(self, md, subject, table=False, toaddrs=None):
         css = """
             <style>
             table { border-collapse: collapse; }
@@ -185,4 +185,7 @@ class baseAgent(ABC):
             ])
         if table:
             html += css
-        send_message(toaddrs=os.environ.get("toaddrs").split("|"), subject=subject, content=html)
+        if toaddrs is None:
+            send_message(toaddrs=os.environ.get("toaddrs").split("|"), subject=subject, content=html)
+        else:
+            send_message(toaddrs=toaddrs, subject=subject, content=html)
