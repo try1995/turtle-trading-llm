@@ -62,7 +62,7 @@ class VlAgent(baseAgent):
                 {"type": "image_url","image_url": {"url": url_to_base64(f"http://image.sinajs.cn/newchart/min/n/{symbol}.gif")},},
                 {"type": "image_url","image_url": {"url": url_to_base64(f"http://image.sinajs.cn/newchart/daily/n/{symbol}.gif")},},
                 {"type": "image_url","image_url": {"url": url_to_base64(f"http://image.sinajs.cn/newchart/weekly/n/{symbol}.gif")},},
-                {"type": "image_url","image_url": {"url": url_to_base64(f"http://image.sinajs.cn/newchart/monthly/n/{symbol}.gif")},},
+                # {"type": "image_url","image_url": {"url": url_to_base64(f"http://image.sinajs.cn/newchart/monthly/n/{symbol}.gif")},},
                 {"type": "text", "text": f"{self.get_date_desc()[0]}, 根据用户上传的图片信息，分析股票的趋势信息。\n\n参考信息如下：{res_str}"}],
             }
         ]
