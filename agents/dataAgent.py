@@ -53,7 +53,7 @@ class DataAgent(baseAgent):
                 {"role": "system", "content": sys_data_prompt},
                 {
                     "role": "user",
-                    "content": f"基于用户提供的数据分析：{self.symbol_name}({self.symbol}){self.symbol}{task}\n用户提供数据如下：{res_str}"
+                    "content": f"基于用户提供的数据分析：{self.symbol_name}({self.symbol}){task}\n用户提供数据如下：{res_str}"
                 }
             ]
             response_stream_res = self.invork(new_messages)
