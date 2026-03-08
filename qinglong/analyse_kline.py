@@ -22,7 +22,7 @@ logger.add(sys.stderr, level="INFO")
 
 exclude_symbol = os.environ.get("exclude_symbol", "").split("|")
 position_symbol = os.environ.get("position_symbol", "").split("|")
-toaddrs = os.environ.get("position_symbol", "").split("|")
+toaddrs = os.environ.get("toaddrs", "").split("|")
 # 热榜选股
 def analysis_task():
     vl_agent = VlAgent()
