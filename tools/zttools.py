@@ -65,7 +65,7 @@ def zt_stock_hist_price(
     end_date: Annotated[str, "结束日期 %Y%m%d，e.g. 20210616"]
 ):
     """
-    描述：获取股票代码日线级别历史交易数据
+    描述：获取股票代码日线级别历史交易数据，建议时间间隔不超过90天
 
     输出参数-历史行情数据
 
@@ -429,6 +429,70 @@ def zt_stock_kdj(
         'k': 'K值',
         'd': 'D值',
         'j': 'J值'
+    }
+    df = df.rename(columns=column_mapping)
+    
+    # 将所有列转换为object类型并转为字典列表
+    df = df.astype(str).to_dict("records")
+    
+    return json.dumps(df, ensure_ascii=False)
+
+
+import requests
+import pandas as pd
+import json
+from typing import Annotated
+
+def zt_pool_dtgc(
+    trade_date: Annotated[str, "交易日期，格式yyyy-MM-dd，从2019-11-28开始，e.g. 2024-01-15"]
+):
+    """
+    描述：根据日期获取每天的跌停股票列表，根据封单资金升序
+    
+    输出参数-跌停股票数据
+
+    名称        类型      描述
+    代码        string   股票代码
+    名称        string   股票名称
+    价格        number   当前价格（元）
+    跌幅        number   跌幅（%）
+    成交额      number   成交额（元）
+    流通市值    number   流通市值（元）
+    总市值      number   总市值（元）
+    动态市盈率   number   动态市盈率
+    换手率      number   换手率（%）
+    连续跌停次数 number   连续跌停次数
+    最后封板时间 string   最后封板时间（HH:mm:ss）
+    封单资金    number   封单资金（元）
+    板上成交额   number   板上成交额（元）
+    开板次数    number   开板次数
+    """
+    # 构建API请求URL
+    url = f"https://api.zhituapi.com/hs/pool/dtgc/{trade_date}?token={ZT_TOKEN}"
+    
+    # 发送请求
+    response = requests.get(url)
+    data = response.json()
+    
+    # 创建DataFrame
+    df = pd.DataFrame(data)
+    
+    # 重命名列
+    column_mapping = {
+        'dm': '代码',
+        'mc': '名称',
+        'p': '价格',
+        'zf': '跌幅',
+        'cje': '成交额',
+        'lt': '流通市值',
+        'zsz': '总市值',
+        'pe': '动态市盈率',
+        'hs': '换手率',
+        'lbc': '连续跌停次数',
+        'lbt': '最后封板时间',
+        'zj': '封单资金',
+        'fba': '板上成交额',
+        'zbc': '开板次数'
     }
     df = df.rename(columns=column_mapping)
     

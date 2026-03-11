@@ -10,7 +10,8 @@ from .baseAgent import baseAgent
 from .InvestmentAgent import InvestmentAgent
 from json_repair import repair_json
 from tools.all_types import EmAllagents
-from tools.base_tool import get_cache, get_all_agent_res, save_response
+from agents.vlAgent import VlAgent
+from tools.base_tool import get_cache, get_all_agent_res, save_response, get_market
 
 
 class PlanAgent(baseAgent):
@@ -22,6 +23,7 @@ class PlanAgent(baseAgent):
         self.agent_dict:dict[str, baseAgent] = {
             EmAllagents.dataAgent.name:DataAgent(), 
             EmAllagents.reportAgent.name:ReportAgent(),
+            EmAllagents.vlAgent.name:VlAgent(),
             EmAllagents.publicOptionAgent.name:PublicOptionAgent(),
             EmAllagents.investmentAgent.name: InvestmentAgent()}
         self.agent_res = {}
@@ -135,20 +137,25 @@ class PlanAgent(baseAgent):
         return plan_raw
 
 
-    def send_allres_email(self, subject):
+    def send_allres_email(self, subject, toaddrs=None):
         cur_date = self.get_date_desc()[1]
         hight_format = """\n\n### <span style="color: red;">{agent} POWER BY {model} </span>\n\n"""
         invest_agent_res = get_cache(cur_date, self.symbol, EmAllagents.investmentAgent.name)
         invest_agent_res += hight_format.format(agent=EmAllagents.investmentAgent.name, model=self.agent_dict[EmAllagents.investmentAgent.name].model)
         data_agent_res = get_cache(cur_date, self.symbol, EmAllagents.dataAgent.name)
         data_agent_res += hight_format.format(agent=EmAllagents.dataAgent.name, model=self.agent_dict[EmAllagents.dataAgent.name].model)
+        vl_agent_res = get_cache(cur_date, self.symbol, EmAllagents.vlAgent.name)
+        vl_agent_res += hight_format.format(agent=EmAllagents.vlAgent.name, model=self.agent_dict[EmAllagents.vlAgent.name].model)
         report_agent_res = get_cache(cur_date, self.symbol, EmAllagents.reportAgent.name)
         report_agent_res += hight_format.format(agent=EmAllagents.reportAgent.name, model=self.agent_dict[EmAllagents.reportAgent.name].model)
         public_agent_res = get_cache(cur_date, self.symbol, EmAllagents.publicOptionAgent.name)
         public_agent_res += hight_format.format(agent=EmAllagents.publicOptionAgent.name, model=self.agent_dict[EmAllagents.publicOptionAgent.name].model)
-    
+
+        symbol = get_market(self.symbol) + self.symbol
+        k_line = f"![{self.symbol_name}](http://image.sinajs.cn/newchart/min/n/{symbol}.gif '{self.symbol_name}')"
         md = "\n\n# 投资建议：\n" + invest_agent_res+\
-            "\n\n\n# 行情及技术指标解析：\n" + data_agent_res + \
+            "\n\n# 行情及技术指标解析：\n" + data_agent_res + \
+            "\n\n# k线图解析：\n" + k_line + "\n\n" + vl_agent_res + \
             "\n\n# 研报解析：\n" + report_agent_res + \
             "\n\n# 舆情解析：\n" + public_agent_res
-        self.send_res_email(md, subject, table=True)
+        self.send_res_email(md, subject, table=True, toaddrs=toaddrs)

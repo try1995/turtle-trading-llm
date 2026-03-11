@@ -8,4 +8,5 @@ class EmAllagents(Enum):
     publicOptionAgent = 2
     investmentAgent = 3
     xuanguAgent=4
+    vlAgent=5   # 视觉理解agent
 

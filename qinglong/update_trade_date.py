@@ -11,6 +11,7 @@ import json
 import config
 from tools.aktools import get_trade_date
 
+os.makedirs(config.cache_dir, exist_ok=True)
 ret = get_trade_date(use_cache=False)
 with open(os.path.join(config.cache_dir, "tradeData"), "w") as f:
     f.write(json.dumps(ret, ensure_ascii=False, indent=4))

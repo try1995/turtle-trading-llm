@@ -10,7 +10,7 @@ reportAgentModel="qwen-long-latest"
 publicOptionAgentModel="qwen-max-2025-01-25"
 investmentAgentModel="qwen3-max-preview"
 xuanguAgentModel="qwen-turbo"
-
+vlAgentModel="qwen-vl-plus"
 
 # 以下可选，给自己邮箱发邮件使用
 # 自己邮箱
