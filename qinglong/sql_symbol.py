@@ -126,7 +126,7 @@ def main():
         logger.info("未在交易日，发送最大窗口翻倍")
     global max_notify_size
     max_notify_size += max_notify_size
-    # telegraph_task()
+    telegraph_task()
     position_task()
 
 if __name__ == "__main__":
