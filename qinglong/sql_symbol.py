@@ -96,9 +96,9 @@ def telegraph_task():
     if records and len(records) >= max_notify_size:
         all_news = []
         for record in records:
-            all_news.append(f"新闻id:{record['StockNews'].id}"+record['StockNews'].content)
+            all_news.append(f"新闻id:{record['StockNews'].id}\n\n新闻标题：{record['StockNews'].title}\n\n新闻内容:{record['StockNews'].content}")
 
-        df = xuangu_process_news_before(all_news, subject)
+        df = xuangu_process_news_before(all_news[:20], subject)
         xuangu_process_news_after(df)
     else:
         logger.info("没有新东西")

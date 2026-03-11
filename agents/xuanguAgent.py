@@ -24,6 +24,7 @@ class XunguAgent(baseAgent):
     
     @save_response
     def run(self, question):
+        logger.debug(f"当前模型：{self.model}")
         logger.info(f"{self.name}：当前执行任务：xuangu")
         new_messages=[
             {"role": "system", "content": sys_xuangu_prompt},

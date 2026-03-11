@@ -53,7 +53,7 @@ class StockNews(Base):
 
     def __repr__(cls):
         return f"{cls.title}\n\n{cls.content}\n\n{cls.sentiment}\n{cls.sentiment_basis}\n\n\
-            {cls.affected_industry}\n{cls.impact_logic}\n\n{cls.company_name}\n{cls.symbol}\n\n{cls.risk_focus}"
+            {cls.affected_industry}\n{cls.impact_logic}\n\n{cls.company_name}\n{cls.symbol}"
         
     
 class AStockInfos(Base):
