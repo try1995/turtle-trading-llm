@@ -124,8 +124,8 @@ def main():
     now = datetime.now().strftime("%Y%m%d")
     if now not in get_trade_date():
         logger.info("未在交易日，发送最大窗口翻倍")
-    global max_notify_size
-    max_notify_size += max_notify_size
+        global max_notify_size
+        max_notify_size += max_notify_size
     telegraph_task()
     position_task()
 
