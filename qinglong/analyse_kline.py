@@ -33,9 +33,9 @@ def analysis_task():
 
 def daily_task():
     now = datetime.now().strftime("%Y%m%d")
-    # if now not in get_trade_date():
-    #     logger.info("未在交易日，跳过")
-    #     return
+    if now not in get_trade_date():
+        logger.info("未在交易日，跳过")
+        return
     analysis_task()
     
     
