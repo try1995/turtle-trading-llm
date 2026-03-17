@@ -47,7 +47,7 @@ if __name__ == "__main__":
         tenant_raw = os.environ.get(arg1, "")
         
         if tenant_raw:
-            tenant = Tenant.parse_raw(arg1)
+            tenant = Tenant.parse_raw(tenant_raw)
             dear = tenant.name
             toaddrs = tenant.toaddrs.split("|")
             exclude_symbol = tenant.exclude_symbol.split("|")
