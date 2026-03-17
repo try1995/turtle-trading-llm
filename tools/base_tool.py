@@ -210,3 +210,18 @@ def get_market(code: str) -> str:
         return 'sz'
     # 其余按北交所处理（8xxxxxx 或 8 位代码）
     return 'bj'
+
+
+def get_env_vars(prefix: str = "tenant_") -> dict:
+    """
+    获取环境变量中以指定前缀开头的股票变量
+    :param prefix: 环境变量前缀，默认 STOCK_
+    :return: 字典：{股票键: 股票值}
+    """
+    _vars = {}
+    # 遍历所有环境变量
+    for env_key, env_value in os.environ.items():
+        # 判断是否以指定字符串开头
+        if env_key.startswith(prefix):
+            _vars[env_key] = env_value
+    return _vars
