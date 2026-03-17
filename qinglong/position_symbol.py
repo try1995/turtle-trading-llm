@@ -12,7 +12,7 @@ import pandas as pd
 import pandas as pd
 from tools.aktools import get_trade_date
 from datetime import datetime
-
+from tools.all_types import Tenant
 
 from agents.planAgent import PlanAgent
 from loguru import logger
@@ -20,8 +20,6 @@ from loguru import logger
 logger.remove()                                     # 去掉默认全局配置
 logger.add(sys.stderr, level="INFO") 
 
-exclude_symbol = os.environ.get("exclude_symbol", "").split("|")
-position_symbol = os.environ.get("position_symbol", "").split("|")
 
 # 持仓股票
 def position_symbol_task():
@@ -31,7 +29,7 @@ def position_symbol_task():
         while maxretry:
             try:
                 plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
-                plan.send_allres_email(subject=f"持仓{symbol}分析")
+                plan.send_allres_email(subject=f"持仓{symbol}分析", toaddrs=toaddrs, dear=dear)
                 break
             except Exception as e:
                 logger.error(e)
@@ -46,4 +44,21 @@ def daily_task():
 
 
 if __name__ == "__main__":
-    daily_task()
+    if len(sys.argv) > 1:
+        arg1 = sys.argv[1]
+        logger.info(f"tenant参数：{arg1}")
+
+        tenant_raw = os.environ.get(arg1, "")
+        
+        if tenant_raw:
+            tenant = Tenant.model_validate_json(tenant_raw)
+            dear = tenant.name
+            toaddrs = tenant.toaddrs.split("|")
+            exclude_symbol = tenant.exclude_symbol.split("|")
+            position_symbol = tenant.position_symbol.split("|")      
+
+            daily_task()
+        else:
+            logger.error(f"未定义环境变量{arg1}")
+    else:
+        logger.error("未定义tenant")

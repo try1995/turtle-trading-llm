@@ -185,12 +185,13 @@ class baseAgent(ABC):
             ])
         if table:
             html += css
-        max_retry = 3
-        while max_retry:
-            try:
-                send_message(toaddrs=toaddrs, subject=subject, content=html, dear=dear)
-                break
-            except Exception as e:
-                logger.error(e)
-                max_retry -= 1
-                sleep(3)
+        for toaddr in toaddrs:
+            max_retry = 3
+            while max_retry:
+                try:
+                    send_message(toaddrs=[toaddr], subject=subject, content=html, dear=dear)
+                    break
+                except Exception as e:
+                    logger.error(e)
+                    max_retry -= 1
+                    sleep(3)
