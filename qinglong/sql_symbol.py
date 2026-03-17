@@ -14,12 +14,11 @@ from loguru import logger
 from json_repair import repair_json
 from agents.xuanguAgent import XunguAgent
 from agents.planAgent import PlanAgent
-from tools.base_tool import push_server_jio
+from tools.base_tool import push_server_jio, get_env_vars
 from tools.sql_utils import *
 from tools.aktools import get_trade_date
+from tools.all_types import Tenant
 
-max_notify_size = int(os.environ.get("max_notify_size", "5"))
-position_symbol = os.environ.get("position_symbol", "").split("|")
 
 color_map = {
     "极度负面":"darkseagreen",
@@ -84,7 +83,14 @@ def xuangu_process_news_before(all_news, subject):
     )
     del email_df["id"]
     
-    xuangu.send_res_email(email_df.to_markdown(index=False), subject, table=True)
+    tenants = get_env_vars()
+    for _, v in tenants.items():
+        logger.debug(v)
+        tenant = Tenant.model_validate_json(v)
+        dear = tenant.name
+        toaddrs = tenant.toaddrs.split("|")
+        
+        xuangu.send_res_email(email_df.to_markdown(index=False), subject, table=True, toaddrs=toaddrs, dear=dear)
     
     return df
 
