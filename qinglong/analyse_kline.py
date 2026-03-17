@@ -27,7 +27,7 @@ def analysis_task():
     for symbol in position_symbol:
         vl_agent.set_symbol(symbol, "")
         md = vl_agent.run(f"分析{symbol}")
-        vl_agent.send_res_email(md, subject=f"持仓盘中分析-{symbol}", table=True, toaddrs=[toaddrs[0]])
+        vl_agent.send_res_email(md, subject=f"持仓盘中分析-{symbol}", table=True, toaddrs=toaddrs, dear=dear)
 
 def daily_task():
     now = datetime.now().strftime("%Y%m%d")
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         tenant_raw = os.environ.get(arg1, "")
         
         if tenant_raw:
-            tenant = Tenant.parse_raw(tenant_raw)
+            tenant = Tenant.model_validate_json(tenant_raw)
             dear = tenant.name
             toaddrs = tenant.toaddrs.split("|")
             exclude_symbol = tenant.exclude_symbol.split("|")
