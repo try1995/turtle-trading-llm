@@ -20,6 +20,8 @@ from tools.aktools import get_trade_date
 from tools.all_types import Tenant
 
 
+max_notify_size = int(os.environ.get("max_notify_size", "5"))
+
 color_map = {
     "极度负面":"darkseagreen",
     "极度正面":"darkred",
