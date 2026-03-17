@@ -137,7 +137,7 @@ class PlanAgent(baseAgent):
         return plan_raw
 
 
-    def send_allres_email(self, subject, toaddrs=None):
+    def send_allres_email(self, subject, toaddrs=None, dear="总裁"):
         cur_date = self.get_date_desc()[1]
         hight_format = """\n\n### <span style="color: red;">{agent} POWER BY {model} </span>\n\n"""
         invest_agent_res = get_cache(cur_date, self.symbol, EmAllagents.investmentAgent.name)
@@ -158,4 +158,4 @@ class PlanAgent(baseAgent):
             "\n\n# k线图解析：\n" + k_line + "\n\n" + vl_agent_res + \
             "\n\n# 研报解析：\n" + report_agent_res + \
             "\n\n# 舆情解析：\n" + public_agent_res
-        self.send_res_email(md, subject, table=True, toaddrs=toaddrs)
+        self.send_res_email(md, subject, table=True, toaddrs=toaddrs, dear=dear)

@@ -9,7 +9,7 @@ load_dotenv()
 
 smtp_user, smtp_password, smtp_server = os.environ.get("smtp_user"), os.environ.get("smtp_password"), os.environ.get("smtp_server")
 
-def send_message(toaddrs, subject, content, subtype="html"):
+def send_message(toaddrs, subject, content, dear="总裁", subtype="html"):
     msg = EmailMessage()
     msg.set_content('''
 <!DOCTYPE html>
@@ -34,7 +34,7 @@ ng></div>
                                   overflow: hidden;
                                   padding: 15px 15px 20px;">
         <div class="tips" style="padding:15px;">
-            <p style=" list-style: 160%%; margin: 10px 0;"><strong><b>尊敬的汤总：</b><br><br>
+            <p style=" list-style: 160%%; margin: 10px 0;"><strong><b>尊敬的%s：</b><br><br>
         <b>您发财</b><br/> </strong></p >
         </div>
         %s
@@ -45,7 +45,7 @@ ng></div>
 </div>
 </body>
 </html>
-'''%content, subtype=subtype,cte="quoted-printable")
+'''%(dear, content), subtype=subtype,cte="quoted-printable")
     msg["subject"] = subject
     msg["From"] = formataddr(("盘后自动跑批", smtp_user))
     msg["To"] = toaddrs

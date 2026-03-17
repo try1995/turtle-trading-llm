@@ -1,4 +1,5 @@
 from enum import Enum
+from pydantic import BaseModel
 
 class EmAllagents(Enum):
     planAgent = -1
@@ -10,3 +11,8 @@ class EmAllagents(Enum):
     xuanguAgent=4
     vlAgent=5   # 视觉理解agent
 
+class Tenant(BaseModel):
+    name: str = "总裁"
+    toaddrs: str
+    exclude_symbol: str
+    position_symbol: str
