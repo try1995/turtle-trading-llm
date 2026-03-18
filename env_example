@@ -32,3 +32,4 @@ TAVILY_API_KEY=""
 SERVER_JIO_KEY=""
 # https://www.zhituapi.com/hsstockapi.html
 ZT_TOKEN=""
+DATABASE_URL = "mysql+pymysql://root:123456@192.168.0.128:3306/instockdb?charset=utf8mb4"

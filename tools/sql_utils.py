@@ -1,3 +1,4 @@
+import os
 from loguru import logger
 from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean
 from sqlalchemy.sql import func
@@ -8,7 +9,8 @@ from sqlalchemy.orm import sessionmaker, declarative_base, Session
 import pandas as pd
 
 # 连接字符串：mysql+pymysql://user:password@host:port/dbname?charset=utf8mb4
-DATABASE_URL = "mysql+pymysql://root:123456@192.168.0.128:3306/instockdb?charset=utf8mb4"
+# DATABASE_URL = "mysql+pymysql://root:123456@192.168.0.128:3306/instockdb?charset=utf8mb4"
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 engine = create_engine(
     DATABASE_URL,
