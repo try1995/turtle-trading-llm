@@ -1,7 +1,7 @@
 import json
 from llm import client
 from loguru import logger
-from prompt import sys_xuangu_prompt
+from prompt import sys_news_analysis_prompt, sys_xuangu_prompt
 from .baseAgent import baseAgent
 from tools.all_types import EmAllagents
 from tools import *
@@ -27,7 +27,7 @@ class XunguAgent(baseAgent):
         logger.debug(f"当前模型：{self.model}")
         logger.info(f"{self.name}：当前执行任务：xuangu")
         new_messages=[
-            {"role": "system", "content": sys_xuangu_prompt},
+            {"role": "system", "content": sys_news_analysis_prompt},
             {
                 "role": "user",
                 "content": f"用户提供数据如下：{question}"
@@ -36,3 +36,16 @@ class XunguAgent(baseAgent):
         response_stream_res = self.invork(new_messages)
         return response_stream_res
 
+    @save_response
+    def run_find_symbol(self, question):
+        logger.debug(f"当前模型：{self.model}")
+        logger.info(f"{self.name}：当前执行任务：xuangu")
+        new_messages=[
+            {"role": "system", "content": sys_xuangu_prompt},
+            {
+                "role": "user",
+                "content": f"用户提供数据如下：{question}"
+            }
+        ]
+        response_stream_res = self.invork(new_messages)
+        return response_stream_res
