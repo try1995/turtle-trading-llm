@@ -158,4 +158,7 @@ class PlanAgent(baseAgent):
             "\n\n# k线图解析：\n" + k_line + "\n\n" + vl_agent_res + \
             "\n\n# 研报解析：\n" + report_agent_res + \
             "\n\n# 舆情解析：\n" + public_agent_res
-        self.send_res_email(md, subject, table=True, toaddrs=toaddrs, dear=dear)
+        if toaddrs is None:
+            toaddrs = os.environ.get(toaddrs, "")
+            if toaddrs:
+                self.send_res_email(md, subject, table=True, toaddrs=toaddrs, dear=dear)
