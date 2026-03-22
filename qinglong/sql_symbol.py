@@ -73,7 +73,7 @@ def xuangu_process_news_after(df):
                         maxretry -= 1
 
 
-def xuangu_process_news_before(all_news, subject):
+def xuangu_process_news_before(all_news, subject, tenant=None):
     xuangu = XunguAgent()
     md = xuangu.run("\n\n".join(all_news))
     json_data = repair_json(md, return_objects=True)
@@ -85,10 +85,17 @@ def xuangu_process_news_before(all_news, subject):
     )
     del email_df["id"]
     
-    tenants = get_env_vars()
-    for _, v in tenants.items():
-        logger.debug(v)
-        tenant = Tenant.model_validate_json(v)
+    if tenant is None:
+        tenants = get_env_vars()
+        for _, v in tenants.items():
+            logger.debug(v)
+            tenant = Tenant.model_validate_json(v)
+            dear = tenant.name
+            toaddrs = tenant.toaddrs.split("|")
+            
+            xuangu.send_res_email(email_df.to_markdown(index=False), subject, table=True, toaddrs=toaddrs, dear=dear)
+    else:
+        tenant = Tenant.model_validate_json(tenant)
         dear = tenant.name
         toaddrs = tenant.toaddrs.split("|")
         
@@ -114,19 +121,25 @@ def telegraph_task():
 
 def position_task():
     subject = "持仓新闻-实时推送"
-    conditions = [StockNews.symbol.startswith(prefix) for prefix in position_symbol]
-    stmt = select(StockNews).where(or_(*conditions), StockNews.notifyed==False)
+    tenants = get_env_vars()
+    for _, v in tenants.items():
+        logger.debug(v)
+        tenant = Tenant.model_validate_json(v)
+        position_symbol = tenant.position_symbol.split("|")
+        
+        conditions = [StockNews.symbol.startswith(prefix) for prefix in position_symbol]
+        stmt = select(StockNews).where(or_(*conditions), StockNews.notifyed==False)
 
-    records = find_record(stmt)
-    if records:
-        all_news = []
-        for record in records:
-            all_news.append(f"新闻id:{record['StockNews'].id}\n\n新闻标题：{record['StockNews'].title}\n\n新闻内容:{record['StockNews'].content}")
+        records = find_record(stmt)
+        if records:
+            all_news = []
+            for record in records:
+                all_news.append(f"新闻id:{record['StockNews'].id}\n\n新闻标题：{record['StockNews'].title}\n\n新闻内容:{record['StockNews'].content}")
 
-        df = xuangu_process_news_before(all_news, subject)
-        xuangu_process_news_after(df)
-    else:
-        logger.info("没有新东西")
+            df = xuangu_process_news_before(all_news, subject, v)
+            xuangu_process_news_after(df)
+        else:
+            logger.info("没有新东西")
 
 def main():
     now = datetime.now().strftime("%Y%m%d")
