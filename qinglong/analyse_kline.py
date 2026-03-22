@@ -16,6 +16,7 @@ from tools.all_types import Tenant
 
 from agents.vlAgent import VlAgent
 from loguru import logger
+from .daily_stock_analysis import analysis_stock
 
 logger.remove()                                     # 去掉默认全局配置
 logger.add(sys.stderr, level="INFO") 
@@ -28,6 +29,7 @@ def analysis_task():
         vl_agent.set_symbol(symbol, "")
         md = vl_agent.run(f"分析{symbol}")
         vl_agent.send_res_email(md, subject=f"持仓盘中分析-{symbol}", table=True, toaddrs=toaddrs, dear=dear)
+        analysis_stock(symbol)
 
 def daily_task():
     now = datetime.now().strftime("%Y%m%d")
