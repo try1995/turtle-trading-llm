@@ -9,7 +9,8 @@ if project_root not in sys.path:
 
 import requests
 from loguru import logger
-
+from tools import get_trade_date
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -43,5 +44,13 @@ def analysis_stock(symbol=None):
     session.post(f"http://{anlysis_symbol_url}/api/v1/auth/logout", json=data)
 
 
-if __name__ == "__main__":
+def daily_task():
+    now = datetime.now().strftime("%Y%m%d")
+    if now not in get_trade_date():
+        logger.info("未在交易日，跳过")
+        return
     analysis_stock()
+    
+    
+if __name__ == "__main__":
+    daily_task()
