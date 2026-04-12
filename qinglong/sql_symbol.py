@@ -18,6 +18,7 @@ from tools.base_tool import push_server_jio, get_env_vars
 from tools.sql_utils import *
 from tools.aktools import get_trade_date
 from tools.all_types import Tenant
+from qinglong.daily_stock_analysis import analysis_stock
 
 
 max_notify_size = int(os.environ.get("max_notify_size", "5"))
@@ -61,16 +62,7 @@ def xuangu_process_news_after(df):
             except Exception as e:
                 logger.error(e)
             if symbol != "未提及":
-                plan = PlanAgent()
-                maxretry = 3
-                while maxretry:
-                    try:
-                        plan.run(f"详细分析{data['company_name']}({symbol})行情情况，提供交易建议", human_in_loop=False)
-                        plan.send_allres_email(subject=f"极度正面{data['company_name']}({symbol})分析")
-                        break
-                    except Exception as e:
-                        logger.error(e)
-                        maxretry -= 1
+                analysis_stock(symbol)
 
 
 def xuangu_process_news_before(all_news, subject, tenant=None):
