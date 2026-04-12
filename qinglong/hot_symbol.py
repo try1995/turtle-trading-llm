@@ -12,6 +12,7 @@ import pandas as pd
 import pandas as pd
 from tools import get_trade_date, get_a_symbol_info
 from datetime import datetime
+from qinglong.daily_stock_analysis import analysis_stock
 
 
 from agents.baseAgent import baseAgent
@@ -46,26 +47,7 @@ def hot_symbol_task():
     
     for _, item in df.iterrows():
         symbol = item.代码[2:]
-        # stock_info = ak.stock_individual_info_em(symbol)
-        # stock_info_dict = stock_info.set_index('item')['value'].to_dict()
-        # if stock_info_dict["总市值"] < 800 * 100000000:  # 市值大于一千亿
-        #     continue
-        if get_a_symbol_info(symbol) is None:
-            continue
-        if symbol in exclude_symbol:
-            continue
-        if symbol in position_symbol:
-            continue
-        plan = PlanAgent()
-        maxretry = 3
-        while maxretry:
-            try:
-                plan.run(f"详细分析{item.股票名称}({symbol})行情情况，提供交易建议", human_in_loop=False)
-                plan.send_allres_email(subject=f"{item.股票名称}分析")
-                break
-            except Exception as e:
-                logger.error(e)
-                maxretry -= 1
+        analysis_stock(symbol)
 
 
 def daily_task():
