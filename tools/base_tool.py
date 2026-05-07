@@ -149,20 +149,13 @@ def get_agent_res(
     data_agent_res = get_cache(cur_date, symbol, EmAllagents.dataAgent.name)
     report_agent_res = get_cache(cur_date, symbol, EmAllagents.reportAgent.name)
     public_agent_res = get_cache(cur_date, symbol, EmAllagents.publicOptionAgent.name)
+    vl_agent_res = get_cache(cur_date, symbol, EmAllagents.vlAgent.name)
     
     res = "行情及技术指标解析：" + data_agent_res + \
         "\n\n研报解析：" + report_agent_res + \
-        "\n\n舆情解析：" + public_agent_res
+        "\n\n舆情解析：" + public_agent_res + \
+        "\n\nk线解析：" + vl_agent_res
     return res
-
-
-def get_all_agent_res(symbol: Annotated[str, "股票代码，e.g. 000001"],
-    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"]
-):
-    res = get_agent_res(symbol, cur_date)
-    invest_agent_res = get_cache(cur_date, symbol, EmAllagents.investmentAgent.name)
-    
-    return invest_agent_res + "\n\n*参考*\n\n" + res
 
 
 def fetch_url_content(url):

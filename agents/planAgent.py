@@ -11,7 +11,7 @@ from .InvestmentAgent import InvestmentAgent
 from json_repair import repair_json
 from tools.all_types import EmAllagents
 from agents.vlAgent import VlAgent
-from tools.base_tool import get_cache, get_all_agent_res, save_response, get_market
+from tools.base_tool import get_cache, save_response, get_market
 
 
 class PlanAgent(baseAgent):
@@ -112,9 +112,17 @@ class PlanAgent(baseAgent):
                 if self.use_cache:
                     agent_res = self.get_cache_res(self.symbol, agent_name)
                     if agent_res == "无结果":
-                        agent_res = agent.run(agent_task)
+                        try:
+                            agent_res = agent.run(agent_task)
+                        except Exception as e:
+                            logger.error(f"Error occurred while running agent {agent_name}: {e}")
+                            agent_res = "无结果"
                 else:
-                    agent_res = agent.run(agent_task)
+                    try:
+                        agent_res = agent.run(agent_task)
+                    except Exception as e:
+                        logger.error(f"Error occurred while running agent {agent_name}: {e}")
+                        agent_res = "无结果"
                 self.agent_res[agent_name] = agent_res
                 logger.info("*"*99)
                 
