@@ -5,6 +5,9 @@ loguru==0.7.3
 Markdown==3.10.1
 markitdown==0.1.4
 openai==2.16.0
+langchain>=0.3.0
+langchain-openai>=0.2.0
+langgraph>=0.2.0
 pandas
 python-dotenv==1.2.1
 readability_lxml==0.8.4.1
