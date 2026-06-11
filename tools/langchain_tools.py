@@ -101,9 +101,10 @@ def lc_zt_stock_macd(
 @tool
 def lc_stock_individual_fund_flow(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
 ) -> str:
     """获取个股资金流向数据，包括主力净流入、大单净流入、中单净流入、小单净流入，用于判断资金进出情况。"""
-    return stock_individual_fund_flow(symbol)
+    return stock_individual_fund_flow(symbol, cur_date)
 
 
 @tool
@@ -149,9 +150,10 @@ def lc_stock_zh_scale_comparison_em(
 @tool
 def lc_stock_value_em(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
 ) -> str:
     """获取股票的估值指标数据，包括市盈率(PE)、市净率(PB)、PEG、股息率等关键估值指标。"""
-    return stock_value_em(symbol)
+    return stock_value_em(symbol, cur_date)
 
 
 # =============================================================================
@@ -161,9 +163,10 @@ def lc_stock_value_em(
 @tool
 def lc_stock_research_report_ex(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
 ) -> str:
     """搜索并获取个股的最新一期研报内容，用于分析专业机构对个股的观点和预测。"""
-    return stock_research_report_ex(symbol)
+    return stock_research_report_ex(symbol, cur_date)
 
 
 # =============================================================================
