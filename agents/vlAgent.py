@@ -18,6 +18,9 @@ def url_to_base64(image_url):
     response = req.get(image_url, headers=headers, timeout=30)
     response.raise_for_status()
 
+    if not response.content:
+        raise ValueError(f"Empty image content from {image_url}")
+
     content_type = response.headers.get('content-type', 'image/jpeg')
     base64_data = base64.b64encode(response.content).decode('utf-8')
 
@@ -73,21 +76,27 @@ class VlAgent(baseAgent):
         symbol_full = market + self.symbol
 
         # Build multimodal message with base64-encoded charts
-        user_content = [
-            {"type": "image_url",
-             "image_url": {"url": url_to_base64(
-                 f"http://image.sinajs.cn/newchart/min/n/{symbol_full}.gif")}},
-            {"type": "image_url",
-             "image_url": {"url": url_to_base64(
-                 f"http://image.sinajs.cn/newchart/daily/n/{symbol_full}.gif")}},
-            {"type": "image_url",
-             "image_url": {"url": url_to_base64(
-                 f"http://image.sinajs.cn/newchart/weekly/n/{symbol_full}.gif")}},
-            {"type": "text",
-             "text": f"{self.get_date_desc()[0]}, "
-                     f"根据用户上传的图片信息，分析股票的趋势信息。\n\n"
-                     f"参考信息如下：{res_str}"},
+        image_urls = [
+            f"http://image.sinajs.cn/newchart/min/n/{symbol_full}.gif",
+            f"http://image.sinajs.cn/newchart/daily/n/{symbol_full}.gif",
+            f"http://image.sinajs.cn/newchart/weekly/n/{symbol_full}.gif",
         ]
+        user_content = []
+        for img_url in image_urls:
+            try:
+                user_content.append({
+                    "type": "image_url",
+                    "image_url": {"url": url_to_base64(img_url)},
+                })
+            except Exception as e:
+                logger.warning(f"Failed to load image {img_url}: {e}")
+
+        user_content.append({
+            "type": "text",
+            "text": f"{self.get_date_desc()[0]}, "
+                    f"根据用户上传的图片信息，分析股票的趋势信息。\n\n"
+                    f"参考信息如下：{res_str}",
+        })
 
         phase2_messages = [
             SystemMessage(content=sys_vl_prompt),

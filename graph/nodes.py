@@ -32,7 +32,19 @@ def plan_node(state: AgentState) -> dict:
     Uses sys_plan_prompt to decompose the user's question into a structured
     JSON plan assigning tasks to agents. Supports human-in-the-loop feedback
     when state.human_feedback is set.
+
+    If the state already contains non-empty plans (e.g. pre-parsed by
+    planAgent.run()), the LLM call is skipped and the existing plans are
+    preserved.
     """
+    existing_plans = state.get("plans", [])
+    if existing_plans:
+        logger.info(
+            f"plan_node: {len(existing_plans)} plans already provided, "
+            f"skipping LLM plan generation"
+        )
+        return {"human_feedback": None}
+
     question = state.get("question", "")
     human_feedback = state.get("human_feedback")
     use_cache = state.get("use_cache", True)
