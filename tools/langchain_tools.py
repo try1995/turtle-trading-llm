@@ -31,8 +31,8 @@ def lc_zt_stock_hist_price(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
     start_date: Annotated[str, "开始日期，格式：%Y%m%d，e.g. 20230101"],
     end_date: Annotated[str, "结束日期，格式：%Y%m%d，e.g. 20240101"],
-    period: Annotated[str, "k线类型：ticK(1分钟线)、60(60分钟线)、d(日线)、w(周线)、m(月线)"] = "d",
-    fq: Annotated[str, "复权类型：0(不复权)、1(前复权)、2(后复权)"] = "1",
+    period: Annotated[str, "k线类型：ticK(1分钟线)、60(60分钟线)、d(日线)、w(周线)、m(月线)"],
+    fq: Annotated[str, "复权类型：0(不复权)、1(前复权)、2(后复权)"],
 ) -> str:
     """获取股票的历史数据，返回包含日期、开盘价、收盘价、最高价、最低价及其对应均线的历史数据。"""
     return zt_stock_hist_price(symbol, start_date, end_date, period, fq)
@@ -59,7 +59,7 @@ def lc_zt_stock_kdj(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
     start_date: Annotated[str, "开始日期，格式：%Y%m%d，e.g. 20230101"],
     end_date: Annotated[str, "结束日期，格式：%Y%m%d，e.g. 20240101"],
-    period: Annotated[str, "k线周期类型：d(日线)、w(周线)、m(月线)"] = "d",
+    period: Annotated[str, "k线周期类型：d(日线)、w(周线)、m(月线)"],
 ) -> str:
     """获取股票的KDJ指标数据，KDJ用于判断股价的超买超卖状态，K线上穿D线视为买入信号，K线下穿D线视为卖出信号。"""
     return zt_stock_kdj(symbol, start_date, end_date, period)
@@ -70,7 +70,7 @@ def lc_zt_stock_boll(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
     start_date: Annotated[str, "开始日期，格式：%Y%m%d，e.g. 20230101"],
     end_date: Annotated[str, "结束日期，格式：%Y%m%d，e.g. 20240101"],
-    period: Annotated[str, "k线周期类型：d(日线)、w(周线)、m(月线)"] = "d",
+    period: Annotated[str, "k线周期类型：d(日线)、w(周线)、m(月线)"],
 ) -> str:
     """获取股票的布林带（BOLL）指标数据，BOLL用于判断股价的波动范围和趋势强度，股价触及上轨可能是卖出信号，触及下轨可能是买入信号。"""
     return zt_stock_boll(symbol, start_date, end_date, period)
@@ -81,7 +81,7 @@ def lc_zt_stock_ma(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
     start_date: Annotated[str, "开始日期，格式：%Y%m%d，e.g. 20230101"],
     end_date: Annotated[str, "结束日期，格式：%Y%m%d，e.g. 20240101"],
-    period: Annotated[str, "k线周期类型：d(日线)、w(周线)、m(月线)"] = "d",
+    period: Annotated[str, "k线周期类型：d(日线)、w(周线)、m(月线)"],
 ) -> str:
     """获取股票的均线(MA)数据，包含MA5、MA10、MA20、MA30、MA60、MA120、MA250等多条均线，用于判断股票趋势和支撑压力位。"""
     return zt_stock_ma(symbol, start_date, end_date, period)
@@ -92,7 +92,7 @@ def lc_zt_stock_macd(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
     start_date: Annotated[str, "开始日期，格式：%Y%m%d，e.g. 20230101"],
     end_date: Annotated[str, "结束日期，格式：%Y%m%d，e.g. 20240101"],
-    period: Annotated[str, "k线周期类型：d(日线)、w(周线)、m(月线)"] = "d",
+    period: Annotated[str, "k线周期类型：d(日线)、w(周线)、m(月线)"],
 ) -> str:
     """获取股票的MACD指标数据，MACD用于判断股票的趋势和买卖时机，DIF上穿DEA视为买入信号，DIF下穿DEA视为卖出信号。"""
     return zt_stock_macd(symbol, start_date, end_date, period)
@@ -173,7 +173,7 @@ def lc_stock_research_report_ex(
 @tool
 def lc_stock_news_em(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
-    limit: Annotated[int, "获取的新闻数量上限，默认100"] = 100,
+    limit: Annotated[int, "获取的新闻数量上限，默认100"],
 ) -> str:
     """获取个股相关新闻信息，包括新闻标题、内容摘要、发布时间等，用于舆情分析。"""
     return stock_news_em(symbol, limit)

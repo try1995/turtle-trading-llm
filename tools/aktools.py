@@ -125,7 +125,7 @@ def stock_research_report_ex(symbol: Annotated[str, "股票代码，e.g. 000001"
 def get_indicators(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
     cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
-    data_range: Annotated[int, "时间跨度,建议不低于90天，e.g. 90"] = 90,
+    data_range: Annotated[int, "时间跨度,建议不低于90天，e.g. 90"],
 ):
     """
     描述：获取指定股票代码的技术分析指标

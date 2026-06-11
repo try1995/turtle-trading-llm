@@ -5,7 +5,7 @@ from json_repair import repair_json
 from llm import client  # Legacy — retained for backward compat
 from loguru import logger
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
+from datetime import datetime
 from markdown import markdown
 from tools.send_email import send_message
 from tools.aktools import get_trade_date
@@ -116,79 +116,65 @@ class baseAgent(ABC):
                              "Set self._langchain_tools before calling.")
         return self._llm_with_tools.invoke(messages)
 
-    def _execute_tool_call(self, tool_call) -> str:
+    def _execute_tool_calls(self, ai_message) -> list[ToolMessage]:
         """
-        Execute a single LangChain tool call and return the result string.
+        Execute all tool calls from a LangChain AIMessage natively.
 
-        Handles JSON argument parsing with json_repair fallback, and
-        retries up to 3 times on failure.
+        Returns list of ``ToolMessage`` objects that can be appended directly
+        back into the conversation, letting the LLM continue reasoning in the
+        same turn (LangChain native pattern).
         """
-        func_name = tool_call["name"]
-        func_args_raw = tool_call["args"]
-        max_retry = 3
-
-        # Parse arguments — tool_call["args"] is already a dict in LangChain,
-        # but keep robustness for any string-formatted args
-        if isinstance(func_args_raw, str):
-            try:
-                function_args = json.loads(func_args_raw)
-            except Exception:
-                logger.debug(func_args_raw)
-                logger.info("executing repair_json")
-                function_args = repair_json(func_args_raw, return_objects=True)
-        else:
-            function_args = func_args_raw
-
-        # Find the LangChain tool object
-        langchain_tool = None
-        for t in self._langchain_tools:
-            if t.name == func_name:
-                langchain_tool = t
-                break
-
-        if langchain_tool is None:
-            logger.error(f"Tool not found: {func_name}")
-            return "工具未找到"
-
-        # Get the label from the tool's description (first line)
-        label = (langchain_tool.description or "").splitlines()[0].strip()
-        if not label:
-            label = func_name
-
-        logger.info(
-            f"Executing tool: {func_name}\n"
-            f"Parameters: {json.dumps(function_args, ensure_ascii=False)}\n"
-        )
-
-        while max_retry:
-            try:
-                response = langchain_tool.invoke(function_args)
-                # Unwrap if langchain tool returned a Content str
-                if hasattr(response, 'content'):
-                    response = response.content
-            except Exception as e:
-                max_retry -= 1
-                sleep(3)
-                if max_retry == 0:
-                    logger.error(f"Tool execution failed: {e}")
-                    response = "未获得"
-            else:
-                break
-
-        logger.debug(f"Tool result: {str(response)[:500]}...")
-        return label + "\n:" + str(response)
-
-    def _execute_tool_calls(self, ai_message) -> list:
-        """
-        Execute all tool calls from a LangChain AIMessage.
-
-        Returns list of (tool_call_id, name, result_string) tuples.
-        """
-        results = []
+        tool_messages: list[ToolMessage] = []
         for tool_call in ai_message.tool_calls:
-            result = self._execute_tool_call(tool_call)
-            results.append((tool_call["id"], tool_call["name"], result))
-        return results
+            tool_call_id = tool_call["id"]
+            func_name = tool_call["name"]
+            func_args = tool_call["args"]
+            max_retry = 3
+
+            # Find the LangChain tool object
+            langchain_tool = None
+            for t in self._langchain_tools:
+                if t.name == func_name:
+                    langchain_tool = t
+                    break
+
+            if langchain_tool is None:
+                logger.error(f"Tool not found: {func_name}")
+                tool_messages.append(ToolMessage(
+                    content="工具未找到",
+                    tool_call_id=tool_call_id,
+                    name=func_name,
+                ))
+                continue
+
+            logger.info(
+                f"Executing tool: {func_name}\n"
+                f"Parameters: {json.dumps(func_args, ensure_ascii=False)}\n"
+            )
+
+            response = None
+            while max_retry:
+                try:
+                    response = langchain_tool.invoke(func_args)
+                    if hasattr(response, 'content'):
+                        response = response.content
+                except Exception as e:
+                    max_retry -= 1
+                    sleep(3)
+                    if max_retry == 0:
+                        logger.error(f"Tool execution failed: {e}")
+                        response = "未获得"
+                else:
+                    break
+
+            logger.debug(f"Tool result: {str(response)[:500]}...")
+            tool_messages.append(ToolMessage(
+                content=str(response),
+                tool_call_id=tool_call_id,
+                name=func_name,
+            ))
+
+        return tool_messages
 
     def _execute_agent_loop(
         self,
@@ -197,11 +183,13 @@ class baseAgent(ABC):
         context_extra: str = ""
     ) -> str:
         """
-        Execute the standard two-phase agent loop using LangChain.
+        Execute the standard two-phase agent loop using LangChain natively.
 
-        Phase 1: Tool data collection — LLM decides which tools to call,
-                 execute them, and collect results.
-        Phase 2: Analysis — LLM analyzes tool results with agent-specific prompt.
+        Phase 1: Tool data collection — LLM with bound tools decides which
+                 tools to call; results are passed back as ``ToolMessage``
+                 objects in a native LangChain tool-calling turn.
+        Phase 2: Analysis — The tool results are summarized and fed to the
+                 LLM with the agent-specific analysis prompt.
 
         Args:
             question: The user's question or task description.
@@ -215,27 +203,30 @@ class baseAgent(ABC):
 
         self._init_langchain()
 
-        # ---- Phase 1: Tool data collection ----
-        phase1_messages = [
-            SystemMessage(content=sys_tool_prompt),
-            HumanMessage(content=self.get_date_desc()[0]),
-            HumanMessage(content=f"{question}：{self.symbol_name}({self.symbol})"
-                         + (f"\n\n{context_extra}" if context_extra else "")),
-        ]
-
+        # ---- Phase 1: Tool data collection (native LangChain) ----
+        tool_msgs: list[ToolMessage] = []
         if self._langchain_tools:
+            phase1_messages: list = [
+                SystemMessage(content=sys_tool_prompt),
+                HumanMessage(content=self.get_date_desc()[0]),
+                HumanMessage(
+                    content=f"{question}：{self.symbol_name}({self.symbol})"
+                    + (f"\n\n{context_extra}" if context_extra else "")
+                ),
+            ]
+
             ai_msg = self._invoke_llm_with_tools(phase1_messages)
-            tool_results = self._execute_tool_calls(ai_msg)
-            res_str = "\n\n".join(r[2] for r in tool_results)
-        else:
-            res_str = ""
+            tool_msgs = self._execute_tool_calls(ai_msg)
 
         # ---- Phase 2: Analysis ----
+        tool_summary = "\n\n".join(
+            f"{msg.name}:\n{msg.content}" for msg in tool_msgs
+        )
         phase2_messages = [
             SystemMessage(content=analysis_prompt),
             HumanMessage(
                 content=f"基于用户提供的数据分析：{self.symbol_name}({self.symbol})\n"
-                        f"用户提供数据如下：{res_str}"
+                        f"用户提供数据如下：{tool_summary}"
             ),
         ]
 

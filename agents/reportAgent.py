@@ -37,8 +37,8 @@ class ReportAgent(baseAgent):
             HumanMessage(content=f"研报分析：{self.symbol_name}({self.symbol})"),
         ]
         ai_msg = self._invoke_llm_with_tools(phase1_messages)
-        tool_results_list = self._execute_tool_calls(ai_msg)
-        res_str = "\n\n".join(r[2] for r in tool_results_list)
+        tool_msgs = self._execute_tool_calls(ai_msg)
+        res_str = "\n\n".join(m.content for m in tool_msgs)
 
         # Check MD5-based cache first
         final_response = get_func_response(res_str)

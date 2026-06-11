@@ -47,8 +47,8 @@ class DataAgent(baseAgent):
                 HumanMessage(content=f"{task_name}分析：{self.symbol_name}({self.symbol})"),
             ]
             ai_msg = self._invoke_llm_with_tools(phase1_messages)
-            tool_results_list = self._execute_tool_calls(ai_msg)
-            res_str = "\n\n".join(r[2] for r in tool_results_list)
+            tool_msgs = self._execute_tool_calls(ai_msg)
+            res_str = "\n\n".join(m.content for m in tool_msgs)
 
             # Phase 2: Analysis
             phase2_messages = [
