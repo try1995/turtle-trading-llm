@@ -241,6 +241,8 @@ def stock_individual_fund_flow(
         # 1.说明当天交易日没结束，需要获取的是前一个交易日的数据
         # 2.运行在一个非交易日时间，取最新的交易日的数据
         record = stock_individual_fund_flow_df.tail(1)
+    if record.empty:
+        return "{}"
     record = record.to_dict("records")[0]
     return json.dumps(record, ensure_ascii=False)
 
@@ -290,6 +292,8 @@ def stock_value_em(
         # 1.说明当天交易日没结束，需要获取的是前一个交易日的数据
         # 2.运行在一个非交易日时间，取最新的交易日的数据
         record = df_val.tail(1)
+    if record.empty:
+        return "{}"
     record = record.to_dict("records")[0]
     return json.dumps(record, ensure_ascii=False)
 

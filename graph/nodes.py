@@ -3,6 +3,7 @@ LangGraph node functions for the agent orchestration graph.
 
 Each node takes the current AgentState and returns a partial update.
 """
+import os
 from typing import Literal
 from loguru import logger
 from json_repair import repair_json
@@ -11,6 +12,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from .state import AgentState
 from tools.base_tool import get_cache, get_market
 from tools.all_types import EmAllagents
+import config as tools_config
 from prompt import sys_plan_prompt
 
 
@@ -22,6 +24,21 @@ def set_plan_agent(plan_agent):
     """Register the planAgent instance for node access."""
     global _plan_agent
     _plan_agent = plan_agent
+
+
+def _save_agent_cache(agent_name: str, symbol: str, content: str) -> None:
+    """Save agent result to disk cache so aggregate_node can read it."""
+    if _plan_agent is None:
+        return
+    try:
+        date_dir = _plan_agent.get_date_desc()[1]
+        cache_dir = os.path.join(tools_config.cache_dir, date_dir, symbol)
+        os.makedirs(cache_dir, exist_ok=True)
+        cache_path = os.path.join(cache_dir, f"{agent_name}_run")
+        with open(cache_path, "w") as f:
+            f.write(content)
+    except Exception as e:
+        logger.error(f"Failed to save cache for {agent_name}: {e}")
 
 
 def plan_node(state: AgentState) -> dict:
@@ -142,11 +159,16 @@ def agent_run_node(state: AgentState) -> dict:
                 result = agent.run(agent_task)
             except Exception as e:
                 logger.error(f"Error running agent {agent_name}: {e}")
+                result = "无结果"
+                # Save to cache so send_allres_email can access it
+                _save_agent_cache(agent_name, symbol, result)
     else:
         try:
             result = agent.run(agent_task)
         except Exception as e:
             logger.error(f"Error running agent {agent_name}: {e}")
+            result = "无结果"
+            _save_agent_cache(agent_name, symbol, result)
 
     agent_results[agent_name] = result
     logger.info("*" * 99)
