@@ -10,11 +10,10 @@
 
 用法：
     python qinglong/check_analysis_results.py
-    python qinglong/check_analysis_results.py '{"name":"汤总","toaddrs":"xxx@qq.com"}'
+    python qinglong/check_analysis_results.py tenant_xxx
 """
 import os
 import sys
-import json
 import time
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -27,6 +26,7 @@ import pandas as pd
 from loguru import logger
 from datetime import datetime
 from dotenv import load_dotenv
+from tools.all_types import Tenant
 
 load_dotenv()
 
@@ -201,17 +201,17 @@ def daily_task(dear="总裁", toaddrs=None):
 
 
 if __name__ == "__main__":
-    dear = "总裁"
-    toaddrs = None
-
     if len(sys.argv) > 1:
-        try:
-            config = json.loads(sys.argv[1])
-            dear = config.get("name", dear)
-            addr = config.get("toaddrs")
-            if addr:
-                toaddrs = addr.split("|") if isinstance(addr, str) else addr
-        except json.JSONDecodeError:
-            logger.warning(f"参数解析失败，使用默认配置: {sys.argv[1]}")
+        arg1 = sys.argv[1]
+        logger.info(f"tenant参数：{arg1}")
 
-    daily_task(dear=dear, toaddrs=toaddrs)
+        tenant_raw = os.environ.get(arg1, "")
+        if tenant_raw:
+            tenant = Tenant.model_validate_json(tenant_raw)
+            dear = tenant.name
+            toaddrs = tenant.toaddrs.split("|")
+            daily_task(dear=dear, toaddrs=toaddrs)
+        else:
+            logger.error(f"未定义环境变量{arg1}")
+    else:
+        daily_task()
