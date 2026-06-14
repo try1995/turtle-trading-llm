@@ -132,4 +132,8 @@ if __name__ == "__main__":
     # print(stock_board_concept_name_em_d
     # stock_board_concept_cons_em_df = ak.stock_board_concept_cons_em(symbol="02GN2355")
     # print(stock_board_concept_cons_em_df)
-    print(stock_research_report_ex("000001","20260209"))
+    # print(stock_research_report_ex("000001","20260209"))
+    import akshare as ak
+
+    stock_info_global_sina_df = ak.stock_info_global_ths()
+    print(stock_info_global_sina_df)

@@ -13,7 +13,7 @@ Tool groups per agent:
 - reportAgent: stock_research_report_ex
 - publicOptionAgent: stock_news_em, symbol_tavily_search
 - vlAgent: zt_stock_latest_price, zt_stock_hist_price
-- investmentAgent: get_agent_res
+- investmentAgent: get_agent_res, stock_donchian_channel, stock_atr_value, stock_trend_template, stock_volume_breakout, stock_risk_metrics
 """
 from langchain_core.tools import tool
 from typing import Annotated
@@ -213,6 +213,55 @@ def lc_get_agent_res(
 
 
 # =============================================================================
+# InvestmentAgent new framework tools (5 functions)
+# =============================================================================
+
+@tool
+def lc_stock_donchian_channel(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
+) -> str:
+    """计算海龟交易法则的唐奇安通道(Donchian Channel)指标，包含20日通道上下轨、10日/55日止损位，用于判断海龟交易法的突破入场和止损离场信号。"""
+    return stock_donchian_channel(symbol, cur_date)
+
+
+@tool
+def lc_stock_atr_value(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
+) -> str:
+    """计算14日ATR(平均真实波幅)及1倍/1.5倍/2倍ATR止损位和波动率，用于海龟交易法的仓位管理和风险控制止损设置。"""
+    return stock_atr_value(symbol, cur_date)
+
+
+@tool
+def lc_stock_trend_template(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
+) -> str:
+    """执行马克·米勒维尼SEPA趋势模板检查，包含6条规则：价格高于MA150/MA200、MA趋势向上、距52周高点<25%、高于52周低点>30%等，返回逐条通过情况及总通过数。"""
+    return stock_trend_template(symbol, cur_date)
+
+
+@tool
+def lc_stock_volume_breakout(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
+) -> str:
+    """检测成交量是否放量突破50日均量，计算量比和近5日量能趋势，用于确认价格突破信号的有效性和资金参与度。"""
+    return stock_volume_breakout(symbol, cur_date)
+
+
+@tool
+def lc_stock_risk_metrics(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
+) -> str:
+    """综合风险与估值指标，包含格雷厄姆价值检查(PE*PB<22.5)、ROE、PEG、毛利率、盈利增长和风险收益比评估，用于价值投资和风险控制框架分析。"""
+    return stock_risk_metrics(symbol, cur_date)
+
+
+# =============================================================================
 # Tool group definitions for each agent
 # =============================================================================
 
@@ -251,9 +300,14 @@ VL_AGENT_TOOLS = [
     lc_zt_stock_hist_price,
 ]
 
-# InvestmentAgent: 1 tool
+# InvestmentAgent: 6 tools
 INVESTMENT_AGENT_TOOLS = [
     lc_get_agent_res,
+    lc_stock_donchian_channel,
+    lc_stock_atr_value,
+    lc_stock_trend_template,
+    lc_stock_volume_breakout,
+    lc_stock_risk_metrics,
 ]
 
 # XunguAgent: no tools

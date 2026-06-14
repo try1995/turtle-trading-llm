@@ -527,6 +527,444 @@ def stock_info_cjzc_em():
 
 def stock_info_global_cls():
     # 财联社-电报-重要
-    stock_info_global_cls_df = ak.stock_info_global_cls(symbol="重点").drop(columns=["发布日期","发布时间"])
+    stock_info_global_cls_df = ak.stock_info_global_ths().drop(columns=["链接","发布时间"])
     record = stock_info_global_cls_df.to_dict("records")
     return json.dumps(record, ensure_ascii=False)
+
+
+# =============================================================================
+# InvestmentAgent 投资框架计算工具
+# =============================================================================
+
+def _fetch_ohlcv(symbol: str, cur_date: str, calendar_days: int):
+    """
+    内部辅助函数：获取OHLCV历史数据并重命名为英文列，返回清理后的DataFrame。
+    若获取失败则返回空DataFrame。
+    """
+    try:
+        start_date = (datetime.strptime(cur_date, '%Y%m%d') - timedelta(days=calendar_days)).strftime("%Y%m%d")
+        df = ak.stock_zh_a_hist(symbol=symbol, period="daily",
+                                start_date=start_date, end_date=cur_date, adjust="qfq")
+        if df.empty:
+            return df
+        df = df.rename(columns={
+            "日期": "date",
+            "收盘": "close",
+            "开盘": "open",
+            "最高": "high",
+            "最低": "low",
+            "成交量": "volume",
+            "成交额": "amount",
+        })
+        df["close"] = pd.to_numeric(df["close"], errors="coerce")
+        df["high"] = pd.to_numeric(df["high"], errors="coerce")
+        df["low"] = pd.to_numeric(df["low"], errors="coerce")
+        df["volume"] = pd.to_numeric(df["volume"], errors="coerce")
+        df = df.dropna(subset=["close", "high", "low"])
+        return df
+    except Exception as e:
+        logger.error(f"_fetch_ohlcv failed for {symbol}: {e}")
+        return pd.DataFrame()
+
+
+def stock_donchian_channel(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
+):
+    """
+    描述：计算海龟交易法则的唐奇安通道(Donchian Channel)指标
+
+    输出参数
+    名称          类型      描述
+    计算日期      object    当前计算日期
+    最新收盘价    float64   单位：元
+    通道上轨      float64   20日最高价，单位：元
+    通道下轨      float64   20日最低价，单位：元
+    通道中轨      float64   (上轨+下轨)/2，单位：元
+    55日最低价    float64   用于中线止损判断，单位：元
+    10日最低价    float64   用于短线离场判断，单位：元
+    突破20日高点  str       是/否
+    跌破10日低点  str       是/否
+    跌破55日低点  str       是/否
+    价格在通道内位置 float64  百分比，单位：%
+    """
+    df = _fetch_ohlcv(symbol, cur_date, 120)
+    if df.empty or len(df) < 20:
+        return json.dumps({"提示": "数据不足，无法计算唐奇安通道"}, ensure_ascii=False)
+
+    close = df["close"].values
+    high = df["high"].values
+    low = df["low"].values
+
+    latest_close = round(float(close[-1]), 2)
+
+    # 20日通道
+    high_20 = round(float(pd.Series(high).tail(20).max()), 2)
+    low_20 = round(float(pd.Series(low).tail(20).min()), 2)
+    mid_20 = round((high_20 + low_20) / 2, 2)
+
+    # 止损参考位
+    low_55 = round(float(pd.Series(low).tail(min(55, len(df))).min()), 2)
+    low_10 = round(float(pd.Series(low).tail(min(10, len(df))).min()), 2)
+
+    # 信号判断
+    breakout_up = "是" if latest_close > high_20 else "否"
+    breakdown_10 = "是" if latest_close < low_10 else "否"
+    breakdown_55 = "是" if latest_close < low_55 else "否"
+
+    # 通道内位置
+    if high_20 != low_20:
+        position_pct = round((latest_close - low_20) / (high_20 - low_20) * 100, 2)
+    else:
+        position_pct = 50.0
+
+    record = {
+        "计算日期": cur_date,
+        "最新收盘价": latest_close,
+        "通道上轨(20日高点)": high_20,
+        "通道下轨(20日低点)": low_20,
+        "通道中轨": mid_20,
+        "55日最低价(中线止损)": low_55,
+        "10日最低价(短线离场)": low_10,
+        "突破20日高点": breakout_up,
+        "跌破10日低点": breakdown_10,
+        "跌破55日低点": breakdown_55,
+        "价格在通道内位置(%)": position_pct,
+    }
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_atr_value(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
+):
+    """
+    描述：计算ATR(平均真实波幅)及相关止损位，用于海龟交易和风险控制
+
+    输出参数
+    名称          类型      描述
+    计算日期      object    当前计算日期
+    最新收盘价    float64   单位：元
+    ATR14         float64   14日平均真实波幅
+    1倍ATR止损位  float64   收盘价 - 1*ATR14，单位：元
+    1.5倍ATR止损位 float64  收盘价 - 1.5*ATR14，单位：元
+    2倍ATR止损位  float64   收盘价 - 2*ATR14，单位：元
+    波动率        float64   ATR/收盘价*100，单位：%
+    """
+    df = _fetch_ohlcv(symbol, cur_date, 60)
+    if df.empty or len(df) < 15:
+        return json.dumps({"提示": "数据不足，无法计算ATR"}, ensure_ascii=False)
+
+    close = df["close"].values
+    high = df["high"].values
+    low = df["low"].values
+
+    atr = ta.ATR(high, low, close, timeperiod=14)
+    atr14 = round(float(atr[-1]), 2)
+    latest_close = round(float(close[-1]), 2)
+
+    record = {
+        "计算日期": cur_date,
+        "最新收盘价": latest_close,
+        "ATR14": atr14,
+        "1倍ATR止损位": round(latest_close - atr14, 2),
+        "1.5倍ATR止损位": round(latest_close - atr14 * 1.5, 2),
+        "2倍ATR止损位": round(latest_close - atr14 * 2, 2),
+        "波动率(%)": round(atr14 / latest_close * 100, 2) if latest_close else 0,
+    }
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_trend_template(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
+):
+    """
+    描述：执行马克·米勒维尼SEPA趋势模板检查，逐条判断是否通过
+
+    输出参数
+    名称                  类型      描述
+    计算日期              object    当前计算日期
+    最新收盘价            float64   单位：元
+    MA150                 float64   150日均线，数据不足时为NaN
+    MA200                 float64   200日均线，数据不足时为NaN
+    52周最高价            float64   单位：元
+    52周最低价            float64   单位：元
+    规则1_价格高于MA150   str       是/否/数据不足
+    规则2_价格高于MA200   str       是/否/数据不足
+    规则3_MA150大于MA200  str       是/否/数据不足
+    规则4_MA150趋势向上   str       是/否/数据不足
+    规则5_距52周高点      float64   回撤百分比
+    规则5_通过            str       是/否（回撤<25%视为通过）
+    规则6_高于52周低点    float64   涨幅百分比
+    规则6_通过            str       是/否（涨幅>30%视为通过）
+    总通过数              int       通过数量（满分6）
+    """
+    df = _fetch_ohlcv(symbol, cur_date, 300)
+    if df.empty:
+        return json.dumps({"提示": "数据不足，无法执行SEPA趋势模板检查"}, ensure_ascii=False)
+
+    close = df["close"].values
+
+    latest_close = round(float(close[-1]), 2)
+    high_52w = round(float(pd.Series(close).max()), 2)
+    low_52w = round(float(pd.Series(close).min()), 2)
+
+    # 均线计算
+    def calc_ma(data, period):
+        if len(data) < period:
+            return None
+        ma = ta.SMA(data, timeperiod=period)
+        val = ma[-1]
+        return round(float(val), 2) if not (val is None or val != val) else None  # NaN check
+
+    ma150 = calc_ma(close, 150)
+    ma200 = calc_ma(close, 200)
+
+    # 规则评估
+    pass_count = 0
+
+    def check_rule(condition_str, pass_val):
+        if pass_val is None:
+            return "数据不足", False
+        return ("是" if condition_str else "否"), condition_str
+
+    # 规则1
+    r1_str, r1_pass = check_rule(ma150 is not None and latest_close > ma150, ma150)
+    if r1_pass:
+        pass_count += 1
+
+    # 规则2
+    r2_str, r2_pass = check_rule(ma200 is not None and latest_close > ma200, ma200)
+    if r2_pass:
+        pass_count += 1
+
+    # 规则3
+    if ma150 is not None and ma200 is not None:
+        r3_pass = ma150 > ma200
+        r3_str = "是" if r3_pass else "否"
+        if r3_pass:
+            pass_count += 1
+    else:
+        r3_str = "数据不足"
+
+    # 规则4: MA150 近1个月趋势向上（比较一个月前）
+    if ma150 is not None and len(close) >= 170:
+        ma150_1m_data = close[:-22] if len(close) >= 172 else close[:len(close)-22]
+        if len(ma150_1m_data) >= 150:
+            ma150_1m_ago = ta.SMA(ma150_1m_data, timeperiod=150)[-1]
+            if ma150_1m_ago is not None and ma150_1m_ago == ma150_1m_ago:
+                r4_pass = ma150 > float(ma150_1m_ago)
+                r4_str = "是" if r4_pass else "否"
+                if r4_pass:
+                    pass_count += 1
+            else:
+                r4_str = "数据不足"
+        else:
+            r4_str = "数据不足"
+    else:
+        r4_str = "数据不足"
+
+    # 规则5: 距52周高点回撤 < 25%
+    if high_52w > 0:
+        pct_from_high = round((high_52w - latest_close) / high_52w * 100, 2)
+        r5_pass = pct_from_high < 25
+        r5_str = "是" if r5_pass else "否"
+        if r5_pass:
+            pass_count += 1
+    else:
+        pct_from_high = 0
+        r5_str = "数据不足"
+
+    # 规则6: 高于52周低点 > 30%
+    if low_52w > 0:
+        pct_above_low = round((latest_close - low_52w) / low_52w * 100, 2)
+        r6_pass = pct_above_low > 30
+        r6_str = "是" if r6_pass else "否"
+        if r6_pass:
+            pass_count += 1
+    else:
+        pct_above_low = 0
+        r6_str = "数据不足"
+
+    record = {
+        "计算日期": cur_date,
+        "最新收盘价": latest_close,
+        "MA150": ma150 if ma150 else "数据不足",
+        "MA200": ma200 if ma200 else "数据不足",
+        "52周最高价": high_52w,
+        "52周最低价": low_52w,
+        "规则1_价格高于MA150": r1_str,
+        "规则2_价格高于MA200": r2_str,
+        "规则3_MA150大于MA200": r3_str,
+        "规则4_MA150趋势向上": r4_str,
+        "规则5_距52周高点回撤(%)": pct_from_high,
+        "规则5_通过(回撤<25%)": r5_str,
+        "规则6_高于52周低点涨幅(%)": pct_above_low,
+        "规则6_通过(涨幅>30%)": r6_str,
+        "总通过数": pass_count,
+    }
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_volume_breakout(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
+):
+    """
+    描述：检测成交量是否出现突破（放量），对比50日均量判断资金参与度
+
+    输出参数
+    名称              类型      描述
+    计算日期          object    当前计算日期
+    最新成交量        int64     单位：手
+    50日均成交量      float64   单位：手
+    量比              float64   最新成交量/50日均量
+    是否放量          str       是/否（量比>1.5视为放量）
+    近5日平均量比    float64   近5日量比均值
+    量能趋势          str       放量/缩量/正常
+    """
+    df = _fetch_ohlcv(symbol, cur_date, 80)
+    if df.empty or len(df) < 10:
+        return json.dumps({"提示": "数据不足，无法分析成交量"}, ensure_ascii=False)
+
+    vol = df["volume"].values
+
+    vol_latest = int(vol[-1])
+    if len(vol) >= 51:
+        vol_50_avg = round(float(pd.Series(vol[-51:-1]).mean()), 0)
+        vol_ratio = round(vol_latest / vol_50_avg, 2) if vol_50_avg > 0 else 1.0
+    else:
+        vol_50_avg = round(float(pd.Series(vol[:-1]).mean()), 0) if len(vol) > 1 else vol_latest
+        vol_ratio = round(vol_latest / vol_50_avg, 2) if vol_50_avg > 0 else 1.0
+
+    is_breakout = "是" if vol_ratio > 1.5 else "否"
+
+    # 近5日量比均值
+    ratios_5d = []
+    for i in range(max(0, len(vol) - 5), len(vol)):
+        if i >= 51:
+            avg = pd.Series(vol[i - 50:i]).mean()
+        elif i > 0:
+            avg = pd.Series(vol[:i]).mean()
+        else:
+            continue
+        ratios_5d.append(vol[i] / avg if avg > 0 else 1.0)
+    avg_ratio_5d = round(float(pd.Series(ratios_5d).mean()), 2) if ratios_5d else vol_ratio
+
+    if vol_ratio > 1.5:
+        trend = "放量"
+    elif vol_ratio < 0.7:
+        trend = "缩量"
+    else:
+        trend = "正常"
+
+    record = {
+        "计算日期": cur_date,
+        "最新成交量(手)": vol_latest,
+        "50日均成交量(手)": vol_50_avg,
+        "量比": vol_ratio,
+        "是否放量(>1.5)": is_breakout,
+        "近5日平均量比": avg_ratio_5d,
+        "量能趋势": trend,
+    }
+    return json.dumps(record, ensure_ascii=False)
+
+
+def stock_risk_metrics(
+    symbol: Annotated[str, "股票代码，e.g. 000001"],
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
+):
+    """
+    描述：综合风险与估值指标，涵盖格雷厄姆价值检查、财务健康度和风险控制关键数据
+
+    输出参数
+    名称                    类型      描述
+    计算日期                object    当前计算日期
+    最新收盘价              float64   单位：元
+    PE_TTM                  str       市盈率(TTM)，数据缺失时显示"数据不足"
+    PB                      str       市净率，数据缺失时显示"数据不足"
+    格雷厄姆数              str       PE*PB，<22.5为价值区间
+    格雷厄姆检查            str       通过/未通过/数据不足
+    PEG                     str       PEG值
+    净资产收益率ROE         str       单位：%
+    毛利率                  str       单位：%
+    每股收益                str       单位：元
+    每股净资产              str       单位：元
+    每股经营现金流          str       单位：元
+    净利润同比增长          str       单位：%
+    营业总收入同比增长      str       单位：%
+    总市值                  str       单位：元
+    流通市值                str       单位：元
+    风险收益比评估          str       有利/一般/不利/数据不足
+    """
+    result = {"计算日期": cur_date}
+
+    # 获取估值数据
+    try:
+        val_json = stock_value_em(symbol, cur_date)
+        val_data = json.loads(val_json)
+    except Exception:
+        val_data = {}
+
+    # 获取业绩数据（利润率/ROE）
+    try:
+        yjbb_json = stock_yjbb_em(symbol, cur_date)
+        yjbb_list = json.loads(yjbb_json)
+        yjbb_data = yjbb_list[0] if yjbb_list else {}
+    except Exception:
+        yjbb_data = {}
+
+    # --- 估值指标 ---
+    close_price = val_data.get("当日收盘价", "数据不足")
+    result["最新收盘价"] = close_price
+
+    pe_str = val_data.get("PE(TTM)", "数据不足")
+    pb_str = val_data.get("市净率", "数据不足")
+    peg_str = val_data.get("PEG值", "数据不足")
+    total_mv = val_data.get("总市值", "数据不足")
+    float_mv = val_data.get("流通市值", "数据不足")
+
+    result["PE_TTM"] = pe_str
+    result["PB"] = pb_str
+    result["PEG"] = peg_str
+
+    # 格雷厄姆数
+    try:
+        pe_val = float(pe_str)
+        pb_val = float(pb_str)
+        graham_num = round(pe_val * pb_val, 2)
+        result["格雷厄姆数"] = graham_num
+        result["格雷厄姆检查"] = "通过" if (graham_num < 22.5 and pe_val < 25) else "未通过"
+    except (ValueError, TypeError):
+        result["格雷厄姆数"] = "数据不足"
+        result["格雷厄姆检查"] = "数据不足"
+
+    # --- 财务健康指标 ---
+    result["净资产收益率ROE"] = yjbb_data.get("净资产收益率", "数据不足")
+    result["毛利率"] = yjbb_data.get("销售毛利率", "数据不足")
+    result["每股收益"] = yjbb_data.get("每股收益", "数据不足")
+    result["每股净资产"] = yjbb_data.get("每股净资产", "数据不足")
+    result["每股经营现金流"] = yjbb_data.get("每股经营现金流量", "数据不足")
+    result["净利润同比增长"] = yjbb_data.get("净利润-同比增长", "数据不足")
+    result["营业总收入同比增长"] = yjbb_data.get("营业总收入-同比增长", "数据不足")
+    result["总市值"] = total_mv
+    result["流通市值"] = float_mv
+
+    # --- 风险收益比评估 ---
+    try:
+        roe = float(yjbb_data.get("净资产收益率", 0))
+        net_growth = float(yjbb_data.get("净利润-同比增长", 0))
+        peg = float(peg_str)
+        gross_margin = float(yjbb_data.get("销售毛利率", 0))
+
+        if roe > 15 and net_growth > 0 and peg < 1.5 and gross_margin > 20:
+            result["风险收益比评估"] = "有利"
+        elif roe > 8 and net_growth > -20 and gross_margin > 10:
+            result["风险收益比评估"] = "一般"
+        else:
+            result["风险收益比评估"] = "不利"
+    except (ValueError, TypeError):
+        result["风险收益比评估"] = "数据不足"
+
+    return json.dumps(result, ensure_ascii=False)
