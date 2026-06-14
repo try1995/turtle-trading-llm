@@ -7,7 +7,27 @@ from .base_tool import get_market
 from typing import Annotated
 
 
-ZT_TOKEN = os.environ.get("ZT_TOKEN")
+# 支持多个 ZT_TOKEN，用 | 分隔
+_zt_tokens_raw = os.environ.get("ZT_TOKEN", "")
+_tokens = [t.strip() for t in _zt_tokens_raw.split("|") if t.strip()]
+ZT_TOKEN = _tokens[0] if _tokens else ""  # 兼容外部直接引用
+
+
+def _zt_get(url):
+    """发送GET请求，token 超限则自动换下一个重试。
+
+    URL 中用 __TOKEN__ 作为 token 占位符。
+    所有 token 都用尽仍超限则返回最后一次的 429 响应。
+    """
+    last_resp = None
+    for token in _tokens:
+        _url = url.replace("__TOKEN__", token)
+        resp = requests.get(_url)
+        if resp.status_code == 429 and "101" in resp.text:
+            last_resp = resp
+            continue
+        return resp
+    return last_resp
 
 def zt_price_process(data):
     # 创建DataFrame
@@ -51,8 +71,8 @@ def zt_stock_latest_price(
     pc	float	前收盘价
     """
     symbol = symbol + "." + get_market(symbol).upper()
-    url = f"https://api.zhituapi.com/hs/history/{symbol}/5/n?token={ZT_TOKEN}&limit=5"
-    response = requests.get(url)
+    url = f"https://api.zhituapi.com/hs/history/{symbol}/5/n?token=__TOKEN__&limit=5"
+    response = _zt_get(url)
     data = response.json()
     return zt_price_process(data)
     
@@ -83,8 +103,8 @@ def zt_stock_hist_price(
     换手率	float64	注意单位: %
     """
     symbol = symbol + "." + get_market(symbol).upper()
-    url = f"https://api.zhituapi.com/hs/history/{symbol}/d/n?token={ZT_TOKEN}&st={start_date}&et={end_date}"
-    response = requests.get(url)
+    url = f"https://api.zhituapi.com/hs/history/{symbol}/d/n?token=__TOKEN__&st={start_date}&et={end_date}"
+    response = _zt_get(url)
     data = response.json()
 
     return zt_price_process(data)
@@ -119,10 +139,10 @@ def zt_stock_indicators(
     symbol = symbol + "." + get_market(symbol).upper()
     
     # 构建API请求URL
-    url = f"https://api.zhituapi.com/hs/indicators/{symbol}?token={ZT_TOKEN}&st={start_date}&et={end_date}"
+    url = f"https://api.zhituapi.com/hs/indicators/{symbol}?token=__TOKEN__&st={start_date}&et={end_date}"
     
     # 发送请求
-    response = requests.get(url)
+    response = _zt_get(url)
     data = response.json()
     
     # 创建DataFrame
@@ -174,10 +194,10 @@ def zt_stock_info(
     symbol_with_market = symbol + "." + get_market(symbol).upper()
     
     # 构建API请求URL（注意：文档中是http，但建议用https）
-    url = f"https://api.zhituapi.com/hs/instrument/{symbol_with_market}?token={ZT_TOKEN}"
+    url = f"https://api.zhituapi.com/hs/instrument/{symbol_with_market}?token=__TOKEN__"
     
     # 发送请求
-    response = requests.get(url)
+    response = _zt_get(url)
     data = response.json()
     
     # 由于返回的是单条数据，需要包装成列表再创建DataFrame
@@ -238,12 +258,12 @@ def zt_stock_macd(
     period = "d"
     adjust = "n"
     # 构建基础URL
-    url = f"https://api.zhituapi.com/hs/history/macd/{symbol_with_market}/{period}/{adjust}?token={ZT_TOKEN}&st={start_date}&et={end_date}"
+    url = f"https://api.zhituapi.com/hs/history/macd/{symbol_with_market}/{period}/{adjust}?token=__TOKEN__&st={start_date}&et={end_date}"
     
     url += f"&lt={50}"
 
     # 发送请求
-    response = requests.get(url)
+    response = _zt_get(url)
     data = response.json()
     
     # 创建DataFrame
@@ -297,11 +317,11 @@ def zt_stock_ma(
     # 构建基础URL
     period = "d"
     adjust = "n"
-    url = f"https://api.zhituapi.com/hs/history/ma/{symbol_with_market}/{period}/{adjust}?token={ZT_TOKEN}&st={start_date}&et={end_date}"
+    url = f"https://api.zhituapi.com/hs/history/ma/{symbol_with_market}/{period}/{adjust}?token=__TOKEN__&st={start_date}&et={end_date}"
     
     url += f"&lt={50}"
     # 发送请求
-    response = requests.get(url)
+    response = _zt_get(url)
     data = response.json()
     
     # 创建DataFrame
@@ -348,12 +368,12 @@ def zt_stock_boll(
     period = "d"
     adjust = "n"
     # 构建基础URL
-    url = f"https://api.zhituapi.com/hs/history/boll/{symbol_with_market}/{period}/{adjust}?token={ZT_TOKEN}&st={start_date}&et={end_date}"
+    url = f"https://api.zhituapi.com/hs/history/boll/{symbol_with_market}/{period}/{adjust}?token=__TOKEN__&st={start_date}&et={end_date}"
     
     url += f"&lt={50}"
     
     # 发送请求
-    response = requests.get(url)
+    response = _zt_get(url)
     data = response.json()
     
     # 创建DataFrame
@@ -411,12 +431,12 @@ def zt_stock_kdj(
     period = "d"
     adjust = "n"
     # 构建基础URL
-    url = f"https://api.zhituapi.com/hs/history/kdj/{symbol_with_market}/{period}/{adjust}?token={ZT_TOKEN}&st={start_date}&et={end_date}"
+    url = f"https://api.zhituapi.com/hs/history/kdj/{symbol_with_market}/{period}/{adjust}?token=__TOKEN__&st={start_date}&et={end_date}"
     
     url += f"&lt={50}"
     
     # 发送请求
-    response = requests.get(url)
+    response = _zt_get(url)
     data = response.json()
     
     # 创建DataFrame
