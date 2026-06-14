@@ -26,17 +26,24 @@ logger.add(sys.stderr, level="INFO")
 def analysis_task():
     vl_agent = VlAgent()
     for symbol in position_symbol:
-        vl_agent.set_symbol(symbol, "")
-        md = vl_agent.run(f"分析{symbol}")
-        vl_agent.send_res_email(md, subject=f"持仓盘中分析-{symbol}", table=True, toaddrs=toaddrs, dear=dear)
-        analysis_stock(symbol)
+        try:
+            vl_agent.set_symbol(symbol, "")
+            md = vl_agent.run(f"分析{symbol}")
+            vl_agent.send_res_email(md, subject=f"持仓盘中分析-{symbol}", table=True, toaddrs=toaddrs, dear=dear)
+            analysis_stock(symbol)
+        except Exception as e:
+            logger.error(f"分析{symbol}失败: {e}")
+            continue
 
 def daily_task():
     now = datetime.now().strftime("%Y%m%d")
     if now not in get_trade_date():
         logger.info("未在交易日，跳过")
         return
-    analysis_task()
+    try:
+        analysis_task()
+    except Exception as e:
+        logger.error(f"daily_task执行失败: {e}")
     
     
 if __name__ == "__main__":

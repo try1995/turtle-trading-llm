@@ -12,8 +12,8 @@ import hashlib
 from datetime import datetime
 from tools.sql_utils import *
 from tools.aktools import stock_news_em, stock_info_global_cls
-
-position_symbol = os.environ.get("position_symbol", "").split("|")
+from tools.all_types import Tenant
+from loguru import logger
 
 
 def gen_md5(text):
@@ -23,6 +23,7 @@ def gen_md5(text):
     return md5.hexdigest()
 
 
+@logger.catch
 def telegraph_sql_task():
     telegraph_content_raw = stock_info_global_cls()
     telegraph_content = json.loads(telegraph_content_raw)
@@ -35,7 +36,8 @@ def telegraph_sql_task():
             )
             add_record(record)
 
-def position_sql_task():
+@logger.catch
+def position_sql_task(position_symbol):
     for symbol in position_symbol:
         stock_news_raw = stock_news_em(symbol)
         stock_news = json.loads(stock_news_raw)
@@ -53,11 +55,25 @@ def position_sql_task():
                 )
                 add_record(record)
 
-def main():
+def main(position_symbol):
     telegraph_sql_task()
-    position_sql_task()
+    position_sql_task(position_symbol)
 
 if __name__ == "__main__":
-    main()
+    # python news_symbol.py '{"name":"汤总","toaddrs":"1635341612@qq.com","exclude_symbol":"000001","position_symbol":"601601"}'
+    if len(sys.argv) > 1:
+        arg1 = sys.argv[1]
+        logger.info(f"tenant参数：{arg1}")
+
+        tenant_raw = os.environ.get(arg1, "")
+
+        if tenant_raw:
+            tenant = Tenant.model_validate_json(tenant_raw)
+            position_symbol = tenant.position_symbol.split("|")
+            main(position_symbol)
+        else:
+            logger.error(f"未定义环境变量{arg1}")
+    else:
+        logger.error("未定义tenant")
     
     
