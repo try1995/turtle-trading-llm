@@ -281,6 +281,7 @@ DATA_AGENT_TOOLS = [
     lc_stock_zh_valuation_comparison_em,
     lc_stock_zh_scale_comparison_em,
     lc_stock_value_em,
+    lc_zt_pool_dtgc,
 ]
 
 # ReportAgent: 1 tool

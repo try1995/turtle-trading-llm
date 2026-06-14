@@ -968,3 +968,35 @@ def stock_risk_metrics(
         result["风险收益比评估"] = "数据不足"
 
     return json.dumps(result, ensure_ascii=False)
+
+
+def stock_zt_pool_dtgc_em(
+    date: Annotated[str, "交易日期，格式%%Y%%m%%d，e.g. 20241011"]
+):
+    """
+    描述：东方财富网-行情中心-涨停板行情-跌停股池。获取指定日期的跌停股票列表，按封单资金升序。该接口只能获取最近30个交易日的数据。
+
+    输出参数-跌停股池数据
+
+    名称        类型      描述
+    序号        int64     -
+    代码        object    -
+    名称        object    -
+    涨跌幅      float64   单位: %
+    最新价      float64   -
+    成交额      int64     单位: 元
+    流通市值    float64   -
+    总市值      float64   -
+    动态市盈率   float64   -
+    换手率      float64   单位: %
+    封单资金    int64     -
+    最后封板时间  object   格式: HH:mm:ss
+    板上成交额   int64     -
+    连续跌停    int64     -
+    开板次数    int64     -
+    所属行业    object    -
+    """
+    df = ak.stock_zt_pool_dtgc_em(date=date)
+    df = df.astype(str)
+    record = df.to_dict("records")
+    return json.dumps(record, ensure_ascii=False)

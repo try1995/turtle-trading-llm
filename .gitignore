@@ -5,3 +5,4 @@ aktools_log.log
 .ipynb_checkpoints/
 .pyturtlecache/
 .env
+output/
