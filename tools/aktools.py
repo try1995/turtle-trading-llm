@@ -17,30 +17,24 @@ def stock_zh_a_hist(
     start_date: Annotated[str, "开始日期 %Y%m%d，e.g. 20210301"],
     end_date: Annotated[str, "结束日期 %Y%m%d，e.g. 20210616"],
     period: Annotated[str, "周期，choice of {'daily','weekly','monthly'}，默认 daily"]="daily",
-    adjust: Annotated[str, "复权方式，默认不复权；qfq: 前复权；hfq: 后复权,不复权：看表面价格，忽略分红影响。前复权：看近期成本，适合短线。后复权：看真实收益，适合长线。"]="",
+    adjust: Annotated[str, "复权方式，默认不复权；qfq: 前复权；hfq: 后复权"]="",
 ):
     """
-    描述：沪深京 A 股日频率历史行情
+    描述：沪深京 A 股日频率历史行情（基于智兔API）
 
     输出参数-历史行情数据
 
     名称	类型	描述
-    日期	object	交易日
-    股票代码	object	不带市场标识的股票代码
-    开盘	float64	开盘价
-    收盘	float64	收盘价
-    最高	float64	最高价
-    最低	float64	最低价
+    交易时间	object	交易日
+    开盘价	float64	开盘价
+    收盘价	float64	收盘价
+    最高价	float64	最高价
+    最低价	float64	最低价
     成交量	int64	注意单位: 手
     成交额	float64	注意单位: 元
-    振幅	float64	注意单位: %
-    涨跌幅	float64	注意单位: %
-    涨跌额	float64	注意单位: 元
-    换手率	float64	注意单位: %
     """
-    stock_zh_a_hist_df = ak.stock_zh_a_hist(symbol=symbol, period=period, start_date=start_date, end_date=end_date, adjust=adjust)
-    record = stock_zh_a_hist_df.astype(str).to_dict("records")
-    return json.dumps(record, ensure_ascii=False)
+    from .zttools import zt_stock_hist_price
+    return zt_stock_hist_price(symbol, start_date, end_date)
 
 
 
@@ -144,23 +138,33 @@ def get_indicators(
     """
     # end_date   = datetime.now().strftime("%Y%m%d")
     start_date = (datetime.strptime(cur_date, '%Y%m%d') - timedelta(days=data_range)).strftime("%Y%m%d")
-    df = ak.stock_zh_a_hist(symbol=symbol, period="daily",
-                            start_date=start_date, end_date=cur_date, adjust="qfq")
+    # 改用智兔API获取历史行情
+    from .zttools import _zt_get, get_market
+    symbol_market = symbol + "." + get_market(symbol).upper()
+    url = f"https://api.zhituapi.com/hs/history/{symbol_market}/d/n?token=__TOKEN__&st={start_date}&et={cur_date}"
+    response = _zt_get(url)
+    df = pd.DataFrame(response.json())
+    df = df.drop(columns=['sf', "pc"], errors='ignore')
 
-    # 2. 列名转英文，talib 只认英文
+    # 列名映射（zttools原始列: t=时间, o=开盘, h=最高, l=最低, c=收盘, v=成交量）
     df = df.rename(columns={
-        "收盘": "close",
-        "开盘": "open",
-        "最高": "high",
-        "最低": "low",
-        "成交量": "volume"
+        "c": "close",
+        "o": "open",
+        "h": "high",
+        "l": "low",
+        "v": "volume"
     })
+
+    # 转数值类型用于TA-Lib计算
+    for col in ["close", "open", "high", "low", "volume"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    df = df.dropna(subset=["close", "open", "high", "low"])
 
     # 3. 计算常见指标（示例）
     close = df["close"].values
     high  = df["high"].values
     low   = df["low"].values
-    vol   = df["volume"].values.astype(float)
+    vol   = df["volume"].values
 
     df["MA20"]   = ta.SMA(close, timeperiod=20)
     df["RSI14"]  = ta.RSI(close, timeperiod=14)
@@ -168,7 +172,10 @@ def get_indicators(
     df["ATR14"]  = ta.ATR(high, low, close, timeperiod=14)
     df["OBV"]    = ta.OBV(close, vol)
 
-    df = df.drop(columns=["close","open","high","low","volume","股票代码", "成交额", "振幅", "涨跌幅", "涨跌额", "换手率"])
+    df = df.drop(columns=["close","open","high","low","volume"], errors="ignore")
+    # 保留交易时间列
+    if "t" in df.columns:
+        df = df.rename(columns={"t": "日期"})
     record = df.astype(str).to_dict("records")
     return json.dumps(record, ensure_ascii=False)
 
@@ -543,18 +550,26 @@ def _fetch_ohlcv(symbol: str, cur_date: str, calendar_days: int):
     """
     try:
         start_date = (datetime.strptime(cur_date, '%Y%m%d') - timedelta(days=calendar_days)).strftime("%Y%m%d")
-        df = ak.stock_zh_a_hist(symbol=symbol, period="daily",
-                                start_date=start_date, end_date=cur_date, adjust="qfq")
-        if df.empty:
-            return df
+        # 改用智兔API获取历史行情
+        from .zttools import _zt_get, get_market
+        symbol_market = symbol + "." + get_market(symbol).upper()
+        url = f"https://api.zhituapi.com/hs/history/{symbol_market}/d/n?token=__TOKEN__&st={start_date}&et={cur_date}"
+        response = _zt_get(url)
+        data = response.json()
+        if not data:
+            return pd.DataFrame()
+        df = pd.DataFrame(data)
+        # 删除多余列
+        df = df.drop(columns=['sf', "pc"], errors='ignore')
+        # 列映射: t=交易时间, o=开盘, h=最高, l=最低, c=收盘, v=成交量, a=成交额
         df = df.rename(columns={
-            "日期": "date",
-            "收盘": "close",
-            "开盘": "open",
-            "最高": "high",
-            "最低": "low",
-            "成交量": "volume",
-            "成交额": "amount",
+            "t": "date",
+            "o": "open",
+            "h": "high",
+            "l": "low",
+            "c": "close",
+            "v": "volume",
+            "a": "amount",
         })
         df["close"] = pd.to_numeric(df["close"], errors="coerce")
         df["high"] = pd.to_numeric(df["high"], errors="coerce")
