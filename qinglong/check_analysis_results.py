@@ -62,11 +62,24 @@ def wait_for_tasks_complete(session, timeout_minutes=30, poll_interval=30):
         processing = data.get("processing", 0)
 
         if pending == 0 and processing == 0:
-            ret = session.get(f"http://{anlysis_symbol_url}/api/v1/history")
-            data = ret.json()
-            tasks = data.get("items", [])
-            # 过滤当天的任务
-            today_tasks = [t for t in tasks if str(t.get("created_at", "")).startswith(today)]
+            # 翻页获取当日所有任务，按创建时间倒序排列，遇到非当天记录即可停止
+            page = 1
+            today_tasks = []
+            while True:
+                ret = session.get(f"http://{anlysis_symbol_url}/api/v1/history?page={page}")
+                data = ret.json()
+                items = data.get("items", [])
+                if not items:
+                    break
+                for item in items:
+                    created = str(item.get("created_at", ""))
+                    if created.startswith(today):
+                        today_tasks.append(item)
+                    else:
+                        # 后续页时间更早，无需继续
+                        logger.info(f"所有任务已完成，当日共 {len(today_tasks)} 个（翻取至第 {page} 页）")
+                        return today_tasks
+                page += 1
             logger.info(f"所有任务已完成，当日共 {len(today_tasks)} 个")
             return today_tasks
 
