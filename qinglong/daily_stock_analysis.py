@@ -11,7 +11,8 @@ import json
 
 import requests
 from loguru import logger
-from tools import get_trade_date, stock_zt_pool_dtgc_em
+from tools import get_trade_date
+from tools.zttools import zt_strong_stock_pool
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -62,12 +63,12 @@ def get_previous_trade_date():
     return trade_date[idx - 1] if idx > 0 else trade_date[-2]
 
 
-def get_limit_down_stocks(date):
-    """获取指定日期的跌停股票列表，返回逗号分隔的股票代码字符串"""
-    result = stock_zt_pool_dtgc_em(date)
+def get_strong_stocks(date):
+    """获取指定日期的强势股池列表，返回逗号分隔的股票代码字符串"""
+    result = zt_strong_stock_pool(date)
     stocks = json.loads(result)
-    symbols = [s["代码"] for s in stocks]
-    logger.info(f"{date} 跌停股票: {symbols}")
+    symbols = [s["dm"] for s in stocks]
+    logger.info(f"{date} 强势股池: {symbols}")
     return ",".join(symbols)
 
 
@@ -80,9 +81,9 @@ def daily_task():
     if prev_date is None:
         logger.info("无法获取前一个交易日")
         return
-    symbols = get_limit_down_stocks(prev_date)
+    symbols = get_strong_stocks(prev_date)
     if not symbols:
-        logger.info(f"{prev_date} 没有跌停股票，跳过")
+        logger.info(f"{prev_date} 没有强势股，跳过")
         return
     analysis_stock(symbol=symbols)
     

@@ -3,7 +3,7 @@ import os
 import requests
 import json
 import pandas as pd
-from .base_tool import get_market
+from .base_tool import get_market, get_a_symbol_info
 from typing import Annotated
 
 
@@ -450,10 +450,49 @@ def zt_stock_kdj(
         'j': 'J值'
     }
     df = df.rename(columns=column_mapping)
-    
+
     # 将所有列转换为object类型并转为字典列表
     df = df.astype(str).to_dict("records")
-    
+
     return json.dumps(df, ensure_ascii=False)
+
+
+def zt_strong_stock_pool(
+    cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20260616"],
+):
+    """
+    描述：获取指定日期的强势股池列表，按涨幅倒序排列。仅返回A股（代码以0/3/6开头）。
+
+    输出参数-强势股池数据
+
+    字段名称    类型      描述
+    dm         string    代码
+    mc         string    名称
+    p          number    价格（元）
+    ztp        number    涨停价（元）
+    zf         number    涨幅（%）
+    cje        number    成交额（元）
+    lt         number    流通市值（元）
+    zsz        number    总市值（元）
+    zs         number    涨速（%）
+    nh         number    是否新高（0：否，1：是）
+    lb         number    量比
+    hs         number    换手率（%）
+    tj         string    涨停统计（x天/y板）
+    """
+    date_str = f"{cur_date[:4]}-{cur_date[4:6]}-{cur_date[6:]}"
+    url = f"https://api.zhituapi.com/hs/pool/qsgc/{date_str}?token=__TOKEN__"
+    response = _zt_get(url)
+    if response is None or response.status_code != 200:
+        return "[]"
+    data = response.json()
+    if not data:
+        return "[]"
+    # 过滤A股（通过数据库校验，排除创业板/科创板/北交所）
+    data = [s for s in data if get_a_symbol_info(s["dm"]) is not None
+            and not s["dm"].startswith("3")
+            and not s["dm"].startswith("688")
+            and not s["dm"].startswith("8")]
+    return json.dumps(data, ensure_ascii=False)
 
 
