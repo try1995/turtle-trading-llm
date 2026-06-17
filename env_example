@@ -1,5 +1,8 @@
 # 必选大模型相关参数
-api_key="sk-"
+# 支持多 API Key 自动切换（用 | 分隔）
+# 当第一个 Key 遇到配额/鉴权错误时，自动切换到下一个 Key
+# 所有 Key 都耗尽时，系统会发送邮件通知
+api_key="sk-xxx|sk-yyy"
 base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
 model="qwen-plus-latest"
 

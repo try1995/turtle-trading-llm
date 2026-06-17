@@ -45,39 +45,125 @@ class baseAgent(ABC):
         pass
 
     # =========================================================================
+    # Multi-key failover helpers
+    # =========================================================================
+
+    def _is_quota_error(self, e: Exception) -> bool:
+        """Check if *e* is a quota/auth error that should trigger key rotation."""
+        from llm_factory import is_quota_error as _check
+        return _check(e)
+
+    def _send_all_keys_exhausted_email(self, last_error: Exception) -> None:
+        """Send an email notification when all API keys have been exhausted."""
+        subject = f"[严重] API Key 全部耗尽 — {self.name}"
+        dear = "管理员"
+        body = (
+            f"<h3>API Key 全部耗尽</h3>"
+            f"<p><b>Agent:</b> {self.name}</p>"
+            f"<p><b>Symbol:</b> {self.symbol}({self.symbol_name})</p>"
+            f"<p><b>错误信息:</b> {last_error}</p>"
+            f"<p><b>时间:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>"
+            f"<p>系统已耗尽所有 API Key 仍无法完成调用，请及时补充额度。</p>"
+        )
+        toaddrs = os.environ.get("toaddrs", "").split("|")
+        if toaddrs and toaddrs[0]:
+            self.send_res_email(body, subject, toaddrs=toaddrs, dear=dear)
+
+    def _recreate_llm_with_key(self, key_index: int) -> None:
+        """Recreate ``_llm`` (chat) instance with the *key_index*-th API key."""
+        from llm_factory import _create_chat_model_with_key as _create
+
+        model = os.environ.get(self.name + "Model", os.environ.get("model", "qwen-plus-latest"))
+        self._llm = _create(key_index, model=model, streaming=True)
+
+    def _recreate_tool_llm_with_key(self, key_index: int) -> None:
+        """Recreate ``_tool_llm`` / ``_llm_with_tools`` with *key_index*-th key."""
+        from llm_factory import _create_chat_model_with_key as _create
+
+        model = os.environ.get("toolCallModel")
+        if not model:
+            model = os.environ.get(self.name + "Model", os.environ.get("model", "qwen-plus-latest"))
+        self._tool_llm = _create(key_index, model=model, streaming=False)
+        if self._langchain_tools:
+            self._llm_with_tools = self._tool_llm.bind_tools(self._langchain_tools)
+
+    # =========================================================================
     # Legacy LLM invocation methods (backward compatible)
     # =========================================================================
 
     def invork(self, messages, **kwargs):
         """Legacy streaming invocation using raw OpenAI client."""
-        final_response_stream = client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            stream=True,
-            temperature=0.1,
-            **kwargs
-        )
+        from llm_factory import ALL_API_KEYS as keys
 
-        final_response_stream_res = ""
-        for event in final_response_stream:
-            cur_content = event.choices[0].delta.content
-            if cur_content:
-                final_response_stream_res += cur_content
-                print(cur_content, end="")
+        for key_idx in range(len(keys)):
+            try:
+                # Recreate client with current key on retry
+                if key_idx > 0:
+                    client.close()
+                    # Cannot easily mutate the httpx client in openai v2;
+                    # create a fresh instance instead.
+                    from llm_factory import DEFAULT_BASE_URL
+                    client.__init__(
+                        api_key=keys[key_idx],
+                        base_url=DEFAULT_BASE_URL,
+                    )
 
-        return final_response_stream_res
+                final_response_stream = client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    stream=True,
+                    temperature=0.1,
+                    **kwargs
+                )
+
+                final_response_stream_res = ""
+                for event in final_response_stream:
+                    cur_content = event.choices[0].delta.content
+                    if cur_content:
+                        final_response_stream_res += cur_content
+                        print(cur_content, end="")
+
+                return final_response_stream_res
+            except Exception as e:
+                if self._is_quota_error(e) and key_idx < len(keys) - 1:
+                    logger.warning(f"invork: API key {key_idx} failed, trying next... ({e})")
+                    continue
+                # Last key or non-quota error
+                if self._is_quota_error(e):
+                    self._send_all_keys_exhausted_email(e)
+                raise
 
     def invork_with_tools(self, messages):
         """Legacy tool-calling invocation using raw OpenAI client."""
-        response = client.chat.completions.create(
-            model=self.tool_call_mdoel,
-            messages=messages,
-            tools=self.tools_regist,
-            tool_choice="auto"
-        )
-        response_message = response.choices[0].message
+        from llm_factory import ALL_API_KEYS as keys
 
-        return response_message
+        for key_idx in range(len(keys)):
+            try:
+                if key_idx > 0:
+                    client.close()
+                    # Cannot easily mutate the httpx client in openai v2;
+                    # create a fresh instance instead.
+                    from llm_factory import DEFAULT_BASE_URL
+                    client.__init__(
+                        api_key=keys[key_idx],
+                        base_url=DEFAULT_BASE_URL,
+                    )
+
+                response = client.chat.completions.create(
+                    model=self.tool_call_mdoel,
+                    messages=messages,
+                    tools=self.tools_regist,
+                    tool_choice="auto"
+                )
+                response_message = response.choices[0].message
+                return response_message
+            except Exception as e:
+                if self._is_quota_error(e) and key_idx < len(keys) - 1:
+                    logger.warning(f"invork_with_tools: API key {key_idx} failed, trying next... ({e})")
+                    continue
+                if self._is_quota_error(e):
+                    self._send_all_keys_exhausted_email(e)
+                raise
 
     # =========================================================================
     # LangChain-based LLM invocation methods
@@ -97,24 +183,52 @@ class baseAgent(ABC):
 
     def _invoke_llm(self, messages: list) -> str:
         """Stream LangChain messages and return concatenated text."""
+        from llm_factory import ALL_API_KEYS as keys
+
         self._init_langchain()
-        response = self._llm.stream(messages)
-        result = ""
-        for chunk in response:
-            if chunk.content:
-                result += chunk.content
-                print(chunk.content, end="")
-        return result
+        for key_idx in range(len(keys)):
+            try:
+                if key_idx > 0:
+                    self._recreate_llm_with_key(key_idx)
+
+                response = self._llm.stream(messages)
+                result = ""
+                for chunk in response:
+                    if chunk.content:
+                        result += chunk.content
+                        print(chunk.content, end="")
+                return result
+            except Exception as e:
+                if self._is_quota_error(e) and key_idx < len(keys) - 1:
+                    logger.warning(f"_invoke_llm: API key {key_idx} failed, trying next... ({e})")
+                    continue
+                if self._is_quota_error(e):
+                    self._send_all_keys_exhausted_email(e)
+                raise
 
     def _invoke_llm_with_tools(self, messages: list):
         """
         Invoke LLM with tool binding and return the LangChain AIMessage.
         """
+        from llm_factory import ALL_API_KEYS as keys
+
         self._init_langchain()
         if self._llm_with_tools is None:
             raise ValueError(f"Agent {self.name} has no tools bound. "
                              "Set self._langchain_tools before calling.")
-        return self._llm_with_tools.invoke(messages)
+
+        for key_idx in range(len(keys)):
+            try:
+                if key_idx > 0:
+                    self._recreate_tool_llm_with_key(key_idx)
+                return self._llm_with_tools.invoke(messages)
+            except Exception as e:
+                if self._is_quota_error(e) and key_idx < len(keys) - 1:
+                    logger.warning(f"_invoke_llm_with_tools: API key {key_idx} failed, trying next... ({e})")
+                    continue
+                if self._is_quota_error(e):
+                    self._send_all_keys_exhausted_email(e)
+                raise
 
     def _execute_tool_calls(self, ai_message) -> list[ToolMessage]:
         """

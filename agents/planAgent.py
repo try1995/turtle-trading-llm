@@ -67,39 +67,55 @@ class PlanAgent(baseAgent):
         Generate plan via LangChain streaming.
 
         Supports interactive human-in-the-loop feedback.
+        Automatically retries with the next API key on quota/auth errors.
         """
+        from llm_factory import ALL_API_KEYS as keys
+
         self._init_langchain()
         messages = [
             SystemMessage(content=sys_plan_prompt),
             HumanMessage(content=message),
         ]
-        stream = self._llm.stream(messages)
-        plan = ""
-        for chunk in stream:
-            if chunk.content:
-                plan += chunk.content
-                print(chunk.content, end="")
 
-        if human_in_loop:
-            while True:
-                _messages = deepcopy(messages)
-                human_input = input(
-                    "\n\nneed replan? or give advice. if not, just input no\n\n"
-                )
-                logger.debug(human_input)
-                if human_input.strip().lower() != "no":
-                    from langchain_core.messages import AIMessage
-                    _messages.append(AIMessage(content=f"Previous plan - {plan}"))
-                    _messages.append(HumanMessage(content=human_input))
-                    stream = self._llm.stream(_messages)
-                    plan = ""
-                    for chunk in stream:
-                        if chunk.content:
-                            plan += chunk.content
-                            print(chunk.content, end="")
-                else:
-                    break
-        return plan
+        for key_idx in range(len(keys)):
+            try:
+                if key_idx > 0:
+                    self._recreate_llm_with_key(key_idx)
+
+                stream = self._llm.stream(messages)
+                plan = ""
+                for chunk in stream:
+                    if chunk.content:
+                        plan += chunk.content
+                        print(chunk.content, end="")
+
+                if human_in_loop:
+                    while True:
+                        _messages = deepcopy(messages)
+                        human_input = input(
+                            "\n\nneed replan? or give advice. if not, just input no\n\n"
+                        )
+                        logger.debug(human_input)
+                        if human_input.strip().lower() != "no":
+                            from langchain_core.messages import AIMessage
+                            _messages.append(AIMessage(content=f"Previous plan - {plan}"))
+                            _messages.append(HumanMessage(content=human_input))
+                            stream = self._llm.stream(_messages)
+                            plan = ""
+                            for chunk in stream:
+                                if chunk.content:
+                                    plan += chunk.content
+                                    print(chunk.content, end="")
+                        else:
+                            break
+                return plan
+            except Exception as e:
+                if self._is_quota_error(e) and key_idx < len(keys) - 1:
+                    logger.warning(f"planAgent.invork: API key {key_idx} failed, trying next... ({e})")
+                    continue
+                if self._is_quota_error(e):
+                    self._send_all_keys_exhausted_email(e)
+                raise
 
     def get_cache_res(self, symbol, agent_name):
         res = get_cache(self.get_date_desc()[1], symbol, agent_name)

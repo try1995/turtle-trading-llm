@@ -76,30 +76,47 @@ def plan_node(state: AgentState) -> dict:
             plan_raw = cache_res
 
     if not plan_raw:
+        from llm_factory import ALL_API_KEYS as keys, is_quota_error
+
         messages = [
             SystemMessage(content=sys_plan_prompt),
             HumanMessage(content=question),
         ]
 
-        stream = _plan_agent._llm.stream(messages)
-        plan_raw = ""
-        for chunk in stream:
-            if chunk.content:
-                plan_raw += chunk.content
-                print(chunk.content, end="")
+        for key_idx in range(len(keys)):
+            try:
+                if key_idx > 0:
+                    _plan_agent._recreate_llm_with_key(key_idx)
 
-        # Handle human-in-the-loop if needed
-        if human_in_loop and human_feedback:
-            _messages = messages + [
-                HumanMessage(content=f"Previous plan - {plan_raw}"),
-                HumanMessage(content=human_feedback),
-            ]
-            stream = _plan_agent._llm.stream(_messages)
-            plan_raw = ""
-            for chunk in stream:
-                if chunk.content:
-                    plan_raw += chunk.content
-                    print(chunk.content, end="")
+                stream = _plan_agent._llm.stream(messages)
+                plan_raw = ""
+                for chunk in stream:
+                    if chunk.content:
+                        plan_raw += chunk.content
+                        print(chunk.content, end="")
+
+                # Handle human-in-the-loop if needed
+                if human_in_loop and human_feedback:
+                    _messages = messages + [
+                        HumanMessage(content=f"Previous plan - {plan_raw}"),
+                        HumanMessage(content=human_feedback),
+                    ]
+                    stream = _plan_agent._llm.stream(_messages)
+                    plan_raw = ""
+                    for chunk in stream:
+                        if chunk.content:
+                            plan_raw += chunk.content
+                            print(chunk.content, end="")
+                break  # success, exit retry loop
+            except Exception as e:
+                if is_quota_error(e) and key_idx < len(keys) - 1:
+                    logger.warning(f"plan_node: API key {key_idx} failed, trying next... ({e})")
+                    continue
+                # Last key exhausted or non-quota error
+                if is_quota_error(e):
+                    logger.error("plan_node: ALL API keys exhausted!")
+                    _plan_agent._send_all_keys_exhausted_email(e)
+                raise
 
     plans = repair_json(plan_raw, return_objects=True)
     if not isinstance(plans, list):
