@@ -58,15 +58,13 @@ def wait_for_tasks_complete(session, timeout_minutes=30, poll_interval=30):
         ret = session.get(f"http://{anlysis_symbol_url}/api/v1/analysis/tasks")
         data = ret.json()
 
-        if not data or not isinstance(data, dict):
-            logger.info("任务列表为空，继续后续步骤")
-            return []
-
         pending = data.get("pending", 0)
         processing = data.get("processing", 0)
 
         if pending == 0 and processing == 0:
-            tasks = data.get("tasks", [])
+            ret = session.get(f"http://{anlysis_symbol_url}/api/v1/history")
+            data = ret.json()
+            tasks = data.get("items", [])
             # 过滤当天的任务
             today_tasks = [t for t in tasks if str(t.get("created_at", "")).startswith(today)]
             logger.info(f"所有任务已完成，当日共 {len(today_tasks)} 个")
@@ -86,7 +84,7 @@ def fetch_scores_from_tasks(session, tasks):
     """
     result = []
     for t in tasks:
-        task_id = t.get("task_id")
+        task_id = t.get("query_id")
         stock_code = t.get("stock_code", "")
         stock_name = t.get("stock_name", "")
 
