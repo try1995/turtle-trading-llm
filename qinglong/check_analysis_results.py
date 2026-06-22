@@ -1,7 +1,7 @@
 """
 分析结果检查脚本
 
-依赖 daily_stock_analysis.py 先触发跌停股票分析，然后本脚本：
+依赖 daily_stock_analysis.py 先触发强势股票分析，然后本脚本：
 
 1. 查询当日分析任务是否全部完成
 2. 查询分析历史获取分数
@@ -138,14 +138,14 @@ def send_score_email(qualified, dear="总裁", toaddrs=None):
     summary_df = df[["stock_code", "stock_name", "score"]].copy()
     summary_df.columns = ["股票代码", "股票名称", "分数"]
     md = summary_df.to_markdown(index=False)
-    md = f"## 跌停股票分析评分汇总\n\n分析日期：{datetime.now().strftime('%Y-%m-%d')}\n\n{md}"
+    md = f"## 强势股票分析评分汇总\n\n分析日期：{datetime.now().strftime('%Y-%m-%d')}\n\n{md}"
 
     logger.info(f"\n{md}")
 
     recipients = toaddrs or toaddrs_default
     if recipients:
         plan = PlanAgent()
-        plan.send_res_email(md, subject=f"跌停分析评分汇总 ({datetime.now().strftime('%m-%d')})",
+        plan.send_res_email(md, subject=f"强势分析评分汇总 ({datetime.now().strftime('%m-%d')})",
                             table=True, toaddrs=recipients, dear=dear)
         logger.info("汇总邮件已发送")
 
@@ -164,7 +164,7 @@ def analyze_high_score_stocks(high_score_stocks, dear="总裁", toaddrs=None):
             plan = PlanAgent()
             plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
             plan.send_allres_email(
-                subject=f"高评分跌停股分析-{symbol}({name}, 分数{score})",
+                subject=f"高评分强势股分析-{symbol}({name}, 分数{score})",
                 toaddrs=toaddrs,
                 dear=dear,
             )
