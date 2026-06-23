@@ -58,7 +58,7 @@ def xuangu_process_news_after(df):
             try:
                 smt = select(StockNews).where(StockNews.id == id)
                 records = find_record(smt)
-                push_server_jio(f"极度正面{symbol}出现了！", desp=records[0]["StockNews"].__repr__())
+                push_server_jio(records[0]["StockNews"].content, desp=records[0]["StockNews"].__repr__())
             except Exception as e:
                 logger.error(e)
             if symbol != "未提及":
