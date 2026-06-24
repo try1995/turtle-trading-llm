@@ -5,7 +5,7 @@
 
 1. 查询当日分析任务是否全部完成
 2. 查询分析历史获取分数
-3. 分数 > 52 的股票，发送邮件汇总
+3. 全部强势股票按分数排序，发送汇总邮件
 4. 分数 > 62 的股票，额外调用 planAgent 深入分析
 
 用法：
@@ -124,7 +124,7 @@ def fetch_scores_from_tasks(session, tasks):
 
 
 def send_score_email(qualified, dear="总裁", toaddrs=None):
-    """发送分数 > 52 的股票汇总邮件"""
+    """发送全部强势股票的汇总邮件（按分数排序）"""
     if not qualified:
         logger.info("没有分数 > 52 的股票，跳过邮件")
         return
@@ -196,15 +196,14 @@ def daily_task(dear="总裁", toaddrs=None):
     logger.info(f"共 {len(scored)} 条评分记录")
 
     # 3. 按分数阈值筛选
-    gt52 = [r for r in scored if r["score"] > 52]
     gt62 = [r for r in scored if r["score"] > 62]
 
-    logger.info(f"分数 > 52: {len(gt52)} 只")
+    logger.info(f"全部强势股票: {len(scored)} 只")
     logger.info(f"分数 > 62: {len(gt62)} 只")
 
-    # 4. 分数 > 52 发送汇总邮件
-    if gt52:
-        send_score_email(gt52, dear=dear, toaddrs=toaddrs)
+    # 4. 全部强势股票发送汇总邮件（按分数排序）
+    if scored:
+        send_score_email(scored, dear=dear, toaddrs=toaddrs)
 
     # 5. 分数 > 62 调用 planAgent 深入分析
     if gt62:

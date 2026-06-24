@@ -10,7 +10,7 @@ if project_root not in sys.path:
 import akshare as ak
 import pandas as pd
 import pandas as pd
-from tools import get_trade_date, get_a_symbol_info
+from tools import get_trade_date, get_market
 from datetime import datetime
 from tools.all_types import Tenant
 
@@ -29,6 +29,11 @@ def analysis_task():
         try:
             vl_agent.set_symbol(symbol, "")
             md = vl_agent.run(f"分析{symbol}")
+            symbol = get_market(symbol) + symbol
+            k_line = (f"![{symbol}]"
+                    f"(http://image.sinajs.cn/newchart/min/n/{symbol}.gif "
+                    f"'{symbol}')")
+            md = k_line + "\n\n" + md
             vl_agent.send_res_email(md, subject=f"持仓盘中分析-{symbol}", table=True, toaddrs=toaddrs, dear=dear)
             analysis_stock(symbol)
         except Exception as e:
