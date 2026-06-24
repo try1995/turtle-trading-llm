@@ -162,7 +162,7 @@ def analyze_high_score_stocks(high_score_stocks, dear="总裁", toaddrs=None):
 
         try:
             plan = PlanAgent()
-            plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
+            plan.run(f"详细分析{symbol}({name})行情情况，提供交易建议", human_in_loop=False)
             plan.send_allres_email(
                 subject=f"高评分强势股分析-{symbol}({name}, 分数{score})",
                 toaddrs=toaddrs,
