@@ -149,12 +149,10 @@ def get_agent_res(
     data_agent_res = get_cache(cur_date, symbol, EmAllagents.dataAgent.name)
     report_agent_res = get_cache(cur_date, symbol, EmAllagents.reportAgent.name)
     public_agent_res = get_cache(cur_date, symbol, EmAllagents.publicOptionAgent.name)
-    vl_agent_res = get_cache(cur_date, symbol, EmAllagents.vlAgent.name)
-    
+
     res = "行情及技术指标解析：" + data_agent_res + \
         "\n\n研报解析：" + report_agent_res + \
-        "\n\n舆情解析：" + public_agent_res + \
-        "\n\nk线解析：" + vl_agent_res
+        "\n\n舆情解析：" + public_agent_res
     return res
 
 

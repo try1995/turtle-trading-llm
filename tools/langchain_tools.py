@@ -208,7 +208,7 @@ def lc_get_agent_res(
     symbol: Annotated[str, "股票代码，e.g. 000001"],
     cur_date: Annotated[str, "当前日期 %Y%m%d，e.g. 20210301"],
 ) -> str:
-    """获取其他所有agent（dataAgent、reportAgent、publicOptionAgent、vlAgent）的运行结果，用于综合分析并生成投资建议。"""
+    """获取其他所有agent（dataAgent、reportAgent、publicOptionAgent）的运行结果，用于综合分析并生成投资建议。"""
     return get_agent_res(symbol, cur_date)
 
 
