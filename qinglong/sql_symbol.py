@@ -55,12 +55,12 @@ def xuangu_process_news_after(df):
         exec_record(smt)
         symbol = data["symbol"]
         if data["sentiment"] == "极度正面":
-            try:
-                smt = select(StockNews).where(StockNews.id == id)
-                records = find_record(smt)
-                push_server_jio(records[0]["StockNews"].title, desp=records[0]["StockNews"].__repr__())
-            except Exception as e:
-                logger.error(e)
+            # try:
+            #     smt = select(StockNews).where(StockNews.id == id)
+            #     records = find_record(smt)
+            #     push_server_jio(records[0]["StockNews"].title, desp=records[0]["StockNews"].__repr__())
+            # except Exception as e:
+            #     logger.error(e)
             if symbol != "未提及":
                 analysis_stock(symbol)
 

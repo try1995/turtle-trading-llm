@@ -15,6 +15,8 @@ from datetime import datetime
 from tools.all_types import Tenant
 
 from agents.planAgent import PlanAgent
+from tools.base_tool import push_server_jio, get_cache
+from tools.all_types import EmAllagents
 from loguru import logger
 
 logger.remove()                                     # 去掉默认全局配置
@@ -30,6 +32,9 @@ def position_symbol_task():
             try:
                 plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
                 plan.send_allres_email(subject=f"持仓{symbol}分析", toaddrs=toaddrs, dear=dear)
+                cur_date = plan.get_date_desc()[1]
+                invest_res = get_cache(cur_date, symbol, EmAllagents.investmentAgent.name)
+                push_server_jio(f"持仓{symbol}分析", invest_res)
                 break
             except Exception as e:
                 logger.error(e)

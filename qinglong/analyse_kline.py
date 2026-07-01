@@ -15,6 +15,7 @@ from datetime import datetime
 from tools.all_types import Tenant
 
 from agents.vlAgent import VlAgent
+from tools.base_tool import push_server_jio
 from loguru import logger
 from qinglong.daily_stock_analysis import analysis_stock
 
@@ -35,6 +36,7 @@ def analysis_task():
                     f"'{symbol}')")
             md = k_line + "\n\n" + md
             vl_agent.send_res_email(md, subject=f"持仓盘中分析-{symbol}", table=True, toaddrs=toaddrs, dear=dear)
+            push_server_jio(f"持仓盘中分析-{symbol}", md)
             analysis_stock(symbol)
         except Exception as e:
             logger.error(f"分析{symbol}失败: {e}")
