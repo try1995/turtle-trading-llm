@@ -26,8 +26,8 @@ max_notify_size = int(os.environ.get("max_notify_size", "5"))
 color_map = {
     "极度负面":"darkseagreen",
     "极度正面":"darkred",
-    "正面":"red",
-    "负面":"green"
+    # "正面":"red",
+    # "负面":"green"
 }
 
 col_map = {
