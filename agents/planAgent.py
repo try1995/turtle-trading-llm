@@ -310,3 +310,4 @@ class PlanAgent(baseAgent):
         if toaddrs:
             self.send_res_email(md, subject, table=True,
                                 toaddrs=toaddrs, dear=dear)
+        return md
