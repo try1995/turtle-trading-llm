@@ -47,7 +47,7 @@ ng></div>
 </html>
 '''%(dear, content), subtype=subtype,cte="quoted-printable")
     msg["subject"] = subject
-    msg["From"] = formataddr(("盘后自动跑批", smtp_user))
+    msg["From"] = formataddr(("老板发财", smtp_user))
     msg["To"] = toaddrs
 
     # with open(smtp_file_name, "rb") as f:

@@ -77,6 +77,10 @@ def xuangu_process_news_before(all_news, subject, tenant=None):
         lambda x: f'<span style="color: {color_map.get(x, "black")};">{x}</span>'
     )
     del email_df["id"]
+
+    if email_df.empty:
+        logger.info("没有需要发送的舆情数据")
+        return df
     
     if tenant is None:
         tenants = get_env_vars()
@@ -91,8 +95,10 @@ def xuangu_process_news_before(all_news, subject, tenant=None):
         tenant = Tenant.model_validate_json(tenant)
         dear = tenant.name
         toaddrs = tenant.toaddrs.split("|")
-        
-        xuangu.send_res_email(email_df.to_markdown(index=False), subject, table=True, toaddrs=toaddrs, dear=dear)
+        # 使用舆情摘要作为邮件主题
+        summary = email_df.iloc[0]['舆情摘要'] if '舆情摘要' in email_df.columns and not email_df.empty else subject
+        summary_subject = f"热点：{summary[:50]}"
+        xuangu.send_res_email(email_df.to_markdown(index=False), summary_subject, table=True, toaddrs=toaddrs, dear=dear)
     
     return df
 
