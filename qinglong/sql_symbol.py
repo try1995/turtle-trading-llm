@@ -89,16 +89,22 @@ def xuangu_process_news_before(all_news, subject, tenant=None):
             tenant = Tenant.model_validate_json(v)
             dear = tenant.name
             toaddrs = tenant.toaddrs.split("|")
-            
-            xuangu.send_res_email(email_df.to_markdown(index=False), subject, table=True, toaddrs=toaddrs, dear=dear)
+            # 多个舆情一条一条的发送，取每条舆情的摘要作为邮件主题
+            for _, row in email_df.iterrows():
+                summary = row['舆情摘要'] if '舆情摘要' in email_df.columns else subject
+                summary_subject = f"热点：{summary[:50]}"
+                row_df = pd.DataFrame([row])
+                xuangu.send_res_email(row_df.to_markdown(index=False), summary_subject, table=True, toaddrs=toaddrs, dear=dear)
     else:
         tenant = Tenant.model_validate_json(tenant)
         dear = tenant.name
         toaddrs = tenant.toaddrs.split("|")
-        # 使用舆情摘要作为邮件主题
-        summary = email_df.iloc[0]['舆情摘要'] if '舆情摘要' in email_df.columns and not email_df.empty else subject
-        summary_subject = f"热点：{summary[:50]}"
-        xuangu.send_res_email(email_df.to_markdown(index=False), summary_subject, table=True, toaddrs=toaddrs, dear=dear)
+        # 多个舆情一条一条的发送，取每条舆情的摘要作为邮件主题
+        for _, row in email_df.iterrows():
+            summary = row['舆情摘要']
+            summary_subject = f"{row['舆情情绪']}：{summary[:50]}"
+            row_df = pd.DataFrame([row])
+            xuangu.send_res_email(row_df.to_markdown(index=False), summary_subject, table=True, toaddrs=toaddrs, dear=dear)
     
     return df
 
