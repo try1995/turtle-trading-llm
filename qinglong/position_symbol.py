@@ -31,10 +31,9 @@ def position_symbol_task():
         while maxretry:
             try:
                 plan.run(f"详细分析{symbol}行情情况，提供交易建议", human_in_loop=False)
-                md = plan.send_allres_email(subject=f"持仓{symbol}分析", toaddrs=toaddrs, dear=dear)
-                cur_date = plan.get_date_desc()[1]
-                # invest_res = get_cache(cur_date, symbol, EmAllagents.investmentAgent.name)
-                push_server_jio(f"持仓{symbol}分析", md)
+                md = plan.compose_email()
+                if not push_server_jio(f"持仓{symbol}分析", md):
+                    plan.send_allres_email(subject=f"持仓{symbol}分析", toaddrs=toaddrs, dear=dear)
                 break
             except Exception as e:
                 logger.error(e)

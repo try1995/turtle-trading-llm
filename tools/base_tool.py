@@ -174,11 +174,17 @@ def fetch_url_content(url):
 @logger.catch(reraise=True)
 def push_server_jio(title, desp):
     SENDKEY = os.environ.get("SERVER_JIO_KEY","")
-    if SENDKEY:
-        push_url = f'https://sctapi.ftqq.com/{SENDKEY}.send'
-        data = {'title': title, 'desp': desp}
-        ret = requests.post(push_url, data=data)
-        logger.debug(ret.content)
+    if not SENDKEY:
+        return False
+    push_url = f'https://sctapi.ftqq.com/{SENDKEY}.send'
+    data = {'title': title, 'desp': desp}
+    ret = requests.post(push_url, data=data)
+    logger.debug(ret.content)
+    try:
+        result = ret.json()
+        return result.get("code") == 0
+    except Exception:
+        return False
 
 
 def get_a_symbol_info(symbol):

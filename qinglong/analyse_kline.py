@@ -35,8 +35,8 @@ def analysis_task():
                     f"(http://image.sinajs.cn/newchart/min/n/{symbol}.gif "
                     f"'{symbol}')")
             md = k_line + "\n\n" + md
-            vl_agent.send_res_email(md, subject=f"持仓盘中分析-{symbol}", table=True, toaddrs=toaddrs, dear=dear)
-            push_server_jio(f"持仓盘中分析-{symbol}", md)
+            if not push_server_jio(f"持仓盘中分析-{symbol}", md):
+                vl_agent.send_res_email(md, subject=f"持仓盘中分析-{symbol}", table=True, toaddrs=toaddrs, dear=dear)
             analysis_stock(symbol)
         except Exception as e:
             logger.error(f"分析{symbol}失败: {e}")

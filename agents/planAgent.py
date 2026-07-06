@@ -257,13 +257,12 @@ class PlanAgent(baseAgent):
         self.act(plans)
 
         return plan_raw
-
-    def send_allres_email(self, subject, toaddrs=None, dear="总裁"):
-        """Assemble and send comprehensive analysis email."""
+    
+    def compose_email(self):
         cur_date = self.get_date_desc()[1]
-        hight_format = ('\n\n### <span style="color: red;">{agent} '
-                        'POWER BY {model} </span>\n\n')
-
+        # hight_format = ('\n\n### <span style="color: red;">{agent} '
+                        # 'POWER BY {model} </span>\n\n')
+        hight_format = ('\n\n### {agent} POWER BY {model}\n\n')
         invest_agent_res = get_cache(cur_date, self.symbol,
                                      EmAllagents.investmentAgent.name)
         invest_agent_res += hight_format.format(
@@ -304,7 +303,12 @@ class PlanAgent(baseAgent):
               "\n\n# k线图解析：\n" + k_line + "\n\n" + vl_agent_res +
               "\n\n# 研报解析：\n" + report_agent_res +
               "\n\n# 舆情解析：\n" + public_agent_res)
+        return md
 
+    def send_allres_email(self, subject, toaddrs=None, dear="总裁"):
+        """Assemble and send comprehensive analysis email."""
+        md = self.compose_email()
+        
         if toaddrs is None:
             toaddrs = os.environ.get("toaddrs", "").split(",")
         if toaddrs:

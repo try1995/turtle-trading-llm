@@ -73,9 +73,6 @@ def xuangu_process_news_before(all_news, subject, tenant=None):
     
     email_df = df.copy()
     email_df = email_df[email_df['舆情情绪'].isin(color_map.keys())]
-    email_df['舆情情绪'] = email_df['舆情情绪'].apply(
-        lambda x: f'<span style="color: {color_map.get(x, "black")};">{x}</span>'
-    )
     del email_df["id"]
 
     if email_df.empty:
