@@ -18,7 +18,7 @@ from tools.base_tool import push_server_jio, get_env_vars
 from tools.sql_utils import *
 from tools.aktools import get_trade_date
 from tools.all_types import Tenant
-from qinglong.daily_stock_analysis import analysis_stock
+from tools.daily_stock_analysis import analysis_stock_sync
 
 
 max_notify_size = int(os.environ.get("max_notify_size", "5"))
@@ -56,7 +56,27 @@ def xuangu_process_news_after(df):
         symbol = data["symbol"]
         if data["sentiment"] == "极度正面":
             if symbol != "未提及":
-                analysis_stock(symbol)
+                result = analysis_stock_sync(symbol)
+                # 检查评分，分数 > 62 时深入分析（同 analyze_high_score_stocks 逻辑）
+                symbol_result = result.get(symbol, {})
+                score = None
+                try:
+                    score = float(symbol_result.get("report", {}).get("summary", {}).get("sentiment_score", 0))
+                except (TypeError, ValueError):
+                    logger.warning(f"{symbol} {data.get('company_name', '')} 无法获取 sentiment_score")
+
+                if score is not None and score > 62:
+                    logger.info(f"分数 {score} > 62，开始深入分析 {data.get('company_name', '')}({symbol})")
+                    from agents.planAgent import PlanAgent
+                    try:
+                        plan = PlanAgent()
+                        plan.run(f"详细分析{symbol}({data.get('company_name', '')})行情情况，提供交易建议", human_in_loop=False)
+                        plan.send_allres_email(
+                            subject=f"高评分强势股分析-{symbol}({data.get('company_name', '')}, 分数{score})",
+                        )
+                        logger.info(f"{data.get('company_name', '')}({symbol}) 深入分析完成")
+                    except Exception as e:
+                        logger.error(f"{symbol} 深入分析失败: {e}")
 
 
 def xuangu_process_news_before(all_news, subject, tenant=None):

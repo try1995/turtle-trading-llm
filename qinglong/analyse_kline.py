@@ -17,7 +17,7 @@ from tools.all_types import Tenant
 from agents.vlAgent import VlAgent
 from tools.base_tool import push_server_jio
 from loguru import logger
-from qinglong.daily_stock_analysis import analysis_stock
+from tools.daily_stock_analysis import analysis_stock
 
 logger.remove()                                     # 去掉默认全局配置
 logger.add(sys.stderr, level="INFO") 

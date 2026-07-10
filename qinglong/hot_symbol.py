@@ -12,7 +12,7 @@ import pandas as pd
 import pandas as pd
 from tools import get_trade_date, get_a_symbol_info
 from datetime import datetime
-from qinglong.daily_stock_analysis import analysis_stock
+from tools.daily_stock_analysis import analysis_stock
 
 from tools.all_types import Tenant
 from agents.baseAgent import baseAgent
