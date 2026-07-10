@@ -55,12 +55,6 @@ def xuangu_process_news_after(df):
         exec_record(smt)
         symbol = data["symbol"]
         if data["sentiment"] == "极度正面":
-            # try:
-            #     smt = select(StockNews).where(StockNews.id == id)
-            #     records = find_record(smt)
-            #     push_server_jio(records[0]["StockNews"].title, desp=records[0]["StockNews"].__repr__())
-            # except Exception as e:
-            #     logger.error(e)
             if symbol != "未提及":
                 analysis_stock(symbol)
 
@@ -71,6 +65,15 @@ def xuangu_process_news_before(all_news, subject, tenant=None):
     json_data = repair_json(md, return_objects=True)
     df = pd.DataFrame(json_data)
     
+    # 补全df里面的股票名称 — 从AStockInfos查询并填充
+    for idx, row in df.iterrows():
+        symbol = row.get('股票代码', '')
+        company_name = row.get('公司名称', '')
+        if symbol == '未提及' and company_name:
+            smt = select(AStockInfos).where(AStockInfos.name.contains(company_name.strip()))
+            records = find_record(smt)
+            if records:
+                df.at[idx, '股票代码'] = records[0]["symbol"]
     email_df = df.copy()
     email_df = email_df[email_df['舆情情绪'].isin(color_map.keys())]
     del email_df["id"]
@@ -79,6 +82,8 @@ def xuangu_process_news_before(all_news, subject, tenant=None):
         logger.info("没有需要发送的舆情数据")
         return df
     
+
+
     if tenant is None:
         tenants = get_env_vars()
         for _, v in tenants.items():
