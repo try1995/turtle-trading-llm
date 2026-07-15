@@ -93,7 +93,7 @@ def xuangu_process_news_before(all_news, subject, tenant=None):
             smt = select(AStockInfos).where(AStockInfos.name.contains(company_name.strip()))
             records = find_record(smt)
             if records:
-                df.at[idx, '股票代码'] = records[0]["symbol"]
+                df.at[idx, '股票代码'] = records[0].get("symbol","未提及")
     email_df = df.copy()
     email_df = email_df[email_df['舆情情绪'].isin(color_map.keys())]
     del email_df["id"]
