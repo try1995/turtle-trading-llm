@@ -16,3 +16,4 @@ class Tenant(BaseModel):
     toaddrs: str
     exclude_symbol: str
     position_symbol: str
+    ignore_trade_day: bool = False

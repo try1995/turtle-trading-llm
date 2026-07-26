@@ -39,9 +39,9 @@ def position_symbol_task():
                 logger.error(e)
                 maxretry -= 1
 
-def daily_task():
+def daily_task(ignore_trade_day):
     now = datetime.now().strftime("%Y%m%d")
-    if now not in get_trade_date():
+    if now not in get_trade_date() and not ignore_trade_day:
         logger.info("未在交易日，跳过")
         return
     position_symbol_task() 
@@ -60,8 +60,9 @@ if __name__ == "__main__":
             toaddrs = tenant.toaddrs.split("|")
             exclude_symbol = tenant.exclude_symbol.split("|")
             position_symbol = tenant.position_symbol.split("|")      
+            ignore_trade_day = tenant.ignore_trade_day
 
-            daily_task()
+            daily_task(ignore_trade_day)
         else:
             logger.error(f"未定义环境变量{arg1}")
     else:
