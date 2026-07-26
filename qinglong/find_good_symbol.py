@@ -8,31 +8,17 @@ if project_root not in sys.path:
 
 from tools.sql_utils import *
 
-from datetime import datetime, timedelta
 from sqlalchemy import select
-from agents.xuanguAgent import XunguAgent
 from tools.all_types import Tenant
-
-# 计算三天前的时间
-three_days_ago = datetime.now() - timedelta(days=3)
-
+from tools.daily_stock_analysis import analysis_stock
 
 def main():
-    stmt = select(StockNews).where(StockNews.source=="财联社", \
-                                   StockNews.created_at >= three_days_ago, \
-                                    StockNews.sentiment.in_(["正面","极度正面"]))
-    records = find_record(stmt)
-    # print(records)
-    if records:
-        all_news = []
-        for record in records:
-            # print(record['StockNews'].created_at)
-            all_news.append(f"新闻标题：{record['StockNews'].title}\n\n新闻影响板块:{record['StockNews'].affected_industry}\n\n影响逻辑说明:{record['StockNews'].impact_logic}\n\n可能关联的股票或者公司:{record['StockNews'].company_name} {record['StockNews'].symbol}")
-        print(all_news)
-        xuangu = XunguAgent()
-        email_df = xuangu.run_find_symbol("\n\n".join(all_news))
-        xuangu.send_res_email(email_df, "选股选股选股", table=True, toaddrs=toaddrs, dear=dear)
-
+    for symbol in position_symbol:
+        try:
+            analysis_stock(symbol)
+        except Exception as e:
+            logger.error(f"分析{symbol}失败: {e}")
+            continue
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
