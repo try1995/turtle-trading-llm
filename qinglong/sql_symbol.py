@@ -57,7 +57,7 @@ def xuangu_process_news_after(df):
         if data["sentiment"] == "极度正面":
             if symbol != "未提及":
                 result = analysis_stock_sync(symbol)
-                # 检查评分，分数 > 62 时深入分析（同 analyze_high_score_stocks 逻辑）
+                # 检查评分，分数 > 60 时深入分析（同 analyze_high_score_stocks 逻辑）
                 symbol_result = result.get(symbol, {})
                 score = None
                 try:
@@ -65,8 +65,8 @@ def xuangu_process_news_after(df):
                 except (TypeError, ValueError):
                     logger.warning(f"{symbol} {data.get('company_name', '')} 无法获取 sentiment_score")
 
-                if score is not None and score > 62:
-                    logger.info(f"分数 {score} > 62，开始深入分析 {data.get('company_name', '')}({symbol})")
+                if score is not None and score > 60:
+                    logger.info(f"分数 {score} > 60，开始深入分析 {data.get('company_name', '')}({symbol})")
                     from agents.planAgent import PlanAgent
                     try:
                         plan = PlanAgent()
