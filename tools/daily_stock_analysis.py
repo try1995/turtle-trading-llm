@@ -46,7 +46,7 @@ def analysis_stock(symbol=None):
     session.post(f"http://{anlysis_symbol_url}/api/v1/auth/logout", json=data)
 
 
-def analysis_stock_sync(symbol=None, report_type="detailed", force_refresh=False, timeout=300):
+def analysis_stock_sync(symbol=None, report_type="detailed", force_refresh=False, timeout=1200):
     """同步分析股票，阻塞等待分析结果返回。
 
     与 analysis_stock（异步 fire-and-forget）不同，
