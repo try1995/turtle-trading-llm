@@ -18,6 +18,7 @@ from agents.planAgent import PlanAgent
 from tools.base_tool import push_server_jio, get_cache
 from tools.all_types import EmAllagents
 from loguru import logger
+from tools.github_tools import github_stock_analysis
 
 logger.remove()                                     # 去掉默认全局配置
 logger.add(sys.stderr, level="INFO") 
@@ -44,6 +45,11 @@ def daily_task(ignore_trade_day):
     if now not in get_trade_date() and not ignore_trade_day:
         logger.info("未在交易日，跳过")
         return
+    try:
+        res = github_stock_analysis(tenant.position_symbol)
+        logger.info(f"github_stock_analysis: {res}")
+    except Exception as e:
+        logger.error(f"github_stock_analysis 触发失败: {e}")
     position_symbol_task() 
 
 
