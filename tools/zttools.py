@@ -71,7 +71,7 @@ def zt_stock_latest_price(
     pc	float	前收盘价
     """
     symbol = symbol + "." + get_market(symbol).upper()
-    url = f"https://api.zhituapi.com/hs/history/{symbol}/5/n?token=__TOKEN__&limit=5"
+    url = f"https://api.zhituapi.com/hs/history/{symbol}/5/n?token=__TOKEN__&lt=5"
     response = _zt_get(url)
     data = response.json()
     return zt_price_process(data)
