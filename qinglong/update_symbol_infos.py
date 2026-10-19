@@ -15,9 +15,11 @@ from tools.sql_utils import *
 
 load_dotenv()
 
-url = "https://api.zhituapi.com/hs/list/all?token="+os.environ.get("ZT_TOKEN")
+# ZT_TOKEN 支持多个 token（用 | 分隔），这里取第一个
+zt_token = os.environ.get("ZT_TOKEN", "").split("|")[0].strip()
+url = f"https://api.zhituapi.com/hs/list/all?token={zt_token}"
 
-response = requests.get(url)
+response = requests.get(url, timeout=60)
 
 datas = response.json()
 
